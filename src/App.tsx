@@ -90,7 +90,10 @@ function App() {
   }, [siteMode]);
 
   useEffect(() => {
-    if (authenticated && userType === 'admin') {
+    if (authenticated && userType === 'admin' && currentView === 'adminLogin') {
+      // Only check role if we're still on the login screen
+      // This prevents double-checking when already redirected
+      console.log('🔵 useEffect: Admin authenticated, checking role...');
       checkUserRole();
     }
   }, [authenticated, userType]);
@@ -376,15 +379,11 @@ function App() {
 
   if (currentView === 'adminLogin' && !authenticated) {
     return <AuthScreen
-      onAuthenticated={async () => {
+      onAuthenticated={() => {
         console.log('🔵 Admin authenticated, setting state...');
         setAuthenticated(true);
         setUserType('admin');
-        // Wait a bit for state to update, then check role and redirect
-        setTimeout(async () => {
-          console.log('🔵 Calling checkUserRole after authentication...');
-          await checkUserRole();
-        }, 100);
+        // checkUserRole will be called by useEffect
       }}
       onBack={() => setCurrentView('landing')}
     />;
