@@ -69,12 +69,15 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     };
 
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    console.log('Google Maps API Key check:', apiKey ? 'Found' : 'Missing');
     if (!apiKey) {
       console.error('VITE_GOOGLE_MAPS_API_KEY is not set');
       console.error('Available env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
       setApiKeyError('VITE_GOOGLE_MAPS_API_KEY n\'est pas configurée. Vérifiez votre fichier .env ou les variables d\'environnement sur Netlify.');
       return;
     }
+    
+    console.log('Loading Google Maps script with API key:', apiKey.substring(0, 10) + '...');
 
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap&libraries=places,geometry&v=weekly&loading=async`;
