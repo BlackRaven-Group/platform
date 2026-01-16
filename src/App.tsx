@@ -132,14 +132,22 @@ function App() {
 
   const checkUserRole = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔵 checkUserRole: Starting...');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('❌ Error getting user:', userError);
+        setUserRole('client');
+        return;
+      }
+      
       if (!user) {
-        console.error('No user found');
+        console.error('❌ No user found');
         setUserRole('client');
         return;
       }
 
-      console.log('Checking role for user:', user.email, user.id);
+      console.log('✅ User found:', user.email, user.id);
 
       const { data, error } = await supabase
         .from('admin_roles')
@@ -147,12 +155,12 @@ function App() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('Admin role query result:', { data, error });
+      console.log('🔵 Admin role query result:', { data, error });
 
       if (!error && data) {
         const roleName = data.role || 'client';
         const permissions = data.permissions || {};
-        console.log('Setting role to:', roleName, 'with permissions:', permissions);
+        console.log('✅ Setting role to:', roleName, 'with permissions:', permissions);
         setUserRole(roleName);
         setUserPermissions({
           manage_dossiers: permissions.manage_dossiers || false,
@@ -162,22 +170,26 @@ function App() {
         });
 
         if (roleName === 'support') {
+          console.log('🔵 Redirecting to support dashboard...');
           setCurrentView('support');
         } else if (roleName === 'super_admin' || roleName === 'admin') {
-          loadDossiers();
+          console.log('🔵 Redirecting to OSINT dashboard (list)...');
+          await loadDossiers();
           setCurrentView('list');
         } else {
-          loadDossiers();
+          console.log('🔵 Redirecting to list (default)...');
+          await loadDossiers();
           setCurrentView('list');
         }
       } else {
-        console.error('No admin role found or error:', error);
+        console.error('❌ No admin role found or error:', error);
+        console.log('🔵 Redirecting to list anyway...');
         setUserRole('client');
-        loadDossiers();
+        await loadDossiers();
         setCurrentView('list');
       }
     } catch (err) {
-      console.error('Error checking user role:', err);
+      console.error('❌ Error checking user role:', err);
       setUserRole('client');
     }
   };
@@ -365,10 +377,14 @@ function App() {
   if (currentView === 'adminLogin' && !authenticated) {
     return <AuthScreen
       onAuthenticated={async () => {
+        console.log('🔵 Admin authenticated, setting state...');
         setAuthenticated(true);
         setUserType('admin');
-        // checkUserRole will be called by useEffect to redirect to dashboard
-        await checkUserRole();
+        // Wait a bit for state to update, then check role and redirect
+        setTimeout(async () => {
+          console.log('🔵 Calling checkUserRole after authentication...');
+          await checkUserRole();
+        }, 100);
       }}
       onBack={() => setCurrentView('landing')}
     />;
