@@ -43,17 +43,21 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   }, []);
 
   useEffect(() => {
-    if (scriptLoaded && !loading) {
-      initializeMap();
+    if (scriptLoaded && !loading && allLocations.length >= 0) {
+      if (!map.current) {
+        initializeMap();
+      } else {
+        updateMarkers();
+      }
     }
-  }, [scriptLoaded, loading]);
+  }, [scriptLoaded, loading, allLocations.length]);
 
   useEffect(() => {
     updateDisplayedLocations();
   }, [allLocations, selectedCategories, searchQuery]);
 
   useEffect(() => {
-    if (map.current) {
+    if (map.current && displayedLocations.length >= 0) {
       updateMarkers();
     }
   }, [displayedLocations]);
@@ -123,6 +127,7 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   const initializeMap = () => {
     if (map.current || !mapContainer.current || !window.google?.maps) return;
 
+    console.log('Initializing Google Map...');
     map.current = new window.google.maps.Map(mapContainer.current, {
       center: { lat: 20, lng: 0 },
       zoom: 3,
@@ -153,6 +158,7 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
       ]
     });
 
+    console.log('Map initialized, updating markers with', displayedLocations.length, 'locations');
     updateMarkers();
 
     map.current.addListener('maptypeid_changed', () => {
@@ -178,12 +184,19 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   };
 
   const updateMarkers = () => {
-    if (!window.google?.maps) return;
+    if (!window.google?.maps) {
+      console.log('Google Maps not loaded yet');
+      return;
+    }
 
+    if (!map.current) {
+      console.log('Map not initialized yet');
+      return;
+    }
+
+    console.log('Updating markers with', displayedLocations.length, 'locations');
     markers.current.forEach(marker => marker.setMap(null));
     markers.current = [];
-
-    if (!map.current) return;
 
     displayedLocations.forEach(location => {
       const marker = new window.google.maps.Marker({
