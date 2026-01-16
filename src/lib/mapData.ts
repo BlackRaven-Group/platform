@@ -17,7 +17,6 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
   for (const line of lines) {
     if (!line.trim()) continue;
 
-    // Use the same simple regex that worked in the old version
     const match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
     if (!match) continue;
 
@@ -25,11 +24,7 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
     const lat = parseFloat(match[2]);
     const lng = parseFloat(match[3]);
 
-    if (isNaN(lat) || isNaN(lng)) {
-      skippedCount++;
-      console.warn('Invalid coordinates in line:', line.substring(0, 100));
-      continue;
-    }
+    if (isNaN(lat) || isNaN(lng)) continue;
 
     const category = detectCategory(note);
     const color = getCategoryColor(category);
@@ -44,10 +39,8 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
       category,
       color
     });
-    matchedCount++;
   }
 
-  console.log(`Parsed ${matchedCount} locations, skipped ${skippedCount} lines`);
   return locations;
 }
 
