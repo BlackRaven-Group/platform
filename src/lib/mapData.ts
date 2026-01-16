@@ -9,6 +9,39 @@ export interface MapLocation {
   color: string;
 }
 
+// Simple CSV parser that handles quoted fields
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        // Escaped quote
+        current += '"';
+        i++; // Skip next quote
+      } else {
+        // Toggle quote state
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      // Field separator
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  // Add last field
+  result.push(current);
+  return result;
+}
+
 export function parseCSVLocations(csvContent: string): MapLocation[] {
   const lines = csvContent.split('\n').slice(1);
   const locations: MapLocation[] = [];
@@ -24,39 +57,38 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
       continue;
     }
 
-    // CSV format: "Repère placé,Tomb,"https://www.google.com/maps/search/-8.9040006,39.5060725","
-    // We need to extract: Note (2nd column) and coordinates from URL (3rd column)
-    // Try to match: anything,Note,"https://www.google.com/maps/search/lat,lng"
-    let match = line.match(/^[^,]+,(.+?),"https:\/\/www\.google\.com\/maps\/search\/([0-9.-]+),([0-9.-]+)/);
+    // Parse CSV line properly handling quoted fields
+    const fields = parseCSVLine(line);
     
-    // Alternative: match with escaped quotes or different URL format
-    if (!match) {
-      match = line.match(/^[^,]+,(.+?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
-    }
-    
-    // Fallback: try to find coordinates anywhere in the line
-    if (!match) {
-      const coordMatch = line.match(/"https:\/\/www\.google\.com\/maps\/search\/([0-9.-]+),([0-9.-]+)/);
-      if (coordMatch) {
-        // Extract note (second column) manually
-        const parts = line.split(',');
-        if (parts.length >= 2) {
-          match = [null, parts[1], coordMatch[1], coordMatch[2]];
-        }
-      }
-    }
-    
-    if (!match) {
+    if (fields.length < 3) {
       skippedCount++;
       if (skippedCount <= 5) {
-        console.warn('Line did not match regex:', line.substring(0, 100));
+        console.warn('Line has insufficient fields:', fields.length, line.substring(0, 100));
       }
       continue;
     }
 
-    const note = match[1]?.trim() || '';
-    const lat = parseFloat(match[2]);
-    const lng = parseFloat(match[3]);
+    // fields[0] = "Repère placé" (Titre)
+    // fields[1] = "Tomb" (Note)
+    // fields[2] = "https://www.google.com/maps/search/-8.9040006,39.5060725" (URL)
+    
+    const note = fields[1]?.trim() || '';
+    const url = fields[2]?.trim() || '';
+    
+    // Extract coordinates from URL
+    // Format: "https://www.google.com/maps/search/lat,lng"
+    const urlMatch = url.match(/https:\/\/www\.google\.com\/maps\/search\/([0-9.-]+),([0-9.-]+)/);
+    
+    if (!urlMatch) {
+      skippedCount++;
+      if (skippedCount <= 5) {
+        console.warn('URL does not contain valid coordinates:', url);
+      }
+      continue;
+    }
+
+    const lat = parseFloat(urlMatch[1]);
+    const lng = parseFloat(urlMatch[2]);
 
     if (isNaN(lat) || isNaN(lng)) {
       skippedCount++;
