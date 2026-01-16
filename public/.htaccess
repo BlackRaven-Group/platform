@@ -1,0 +1,18 @@
+# Block all search engine crawlers
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
+</IfModule>
+
+# Block access to sensitive files
+<FilesMatch "\.(env|json|sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Disable directory browsing
+Options -Indexes
+
+# Block common bots
+RewriteEngine On
+RewriteCond %{HTTP_USER_AGENT} (googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|bot|crawl|spider) [NC]
+RewriteRule .* - [F,L]
