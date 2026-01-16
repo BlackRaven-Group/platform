@@ -38,6 +38,7 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   const [totalPinsCount, setTotalPinsCount] = useState(0);
 
   useEffect(() => {
+    console.log('🔵 GoogleMap component mounted, calling loadData and loadGoogleMapsScript');
     loadData();
     loadGoogleMapsScript();
   }, []);
@@ -86,8 +87,9 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     console.log('=== Starting loadData ===');
 
     try {
+      console.log('Ensuring map pins tables...');
       await ensureMapPinsTables();
-      console.log('Map pins tables ensured');
+      console.log('✅ Map pins tables ensured');
 
       const dbPins = await loadMapPinsFromDatabase(undefined, undefined, undefined, 100);
       console.log('Database pins loaded:', dbPins.length, dbPins);
