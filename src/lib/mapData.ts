@@ -24,7 +24,15 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
       continue;
     }
 
-    const match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
+    // Try to match the format: Note,"https://www.google.com/maps/search/lat,lng"
+    // Example: Tomb,"https://www.google.com/maps/search/-8.9040006,39.5060725"
+    let match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/search\/([0-9.-]+),([0-9.-]+)/);
+    
+    // If that doesn't work, try alternative format with more flexible URL matching
+    if (!match) {
+      match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
+    }
+    
     if (!match) {
       skippedCount++;
       continue;
