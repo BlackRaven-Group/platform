@@ -72,20 +72,22 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     let apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     
     // Fallback for development if env var is not loaded (Vite needs server restart)
-    if (!apiKey && import.meta.env.DEV) {
-      console.warn('VITE_GOOGLE_MAPS_API_KEY not found in env, using fallback for development');
-      apiKey = 'AIzaSyAFF8jaSgdtVF85TQcMPnzlUJy5NtUs88g';
+    // This ensures the map works even if .env is not properly loaded
+    if (!apiKey) {
+      if (import.meta.env.DEV) {
+        console.warn('VITE_GOOGLE_MAPS_API_KEY not found in env, using fallback for development');
+        apiKey = 'AIzaSyAFF8jaSgdtVF85TQcMPnzlUJy5NtUs88g';
+      } else {
+        // In production, show error if key is missing
+        console.error('VITE_GOOGLE_MAPS_API_KEY is not set');
+        console.error('Available env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
+        setApiKeyError('VITE_GOOGLE_MAPS_API_KEY n\'est pas configurée. Vérifiez les variables d\'environnement sur Netlify.');
+        return;
+      }
     }
     
     console.log('Google Maps API Key check:', apiKey ? 'Found' : 'Missing');
-    if (!apiKey) {
-      console.error('VITE_GOOGLE_MAPS_API_KEY is not set');
-      console.error('Available env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
-      setApiKeyError('VITE_GOOGLE_MAPS_API_KEY n\'est pas configurée. Vérifiez votre fichier .env ou les variables d\'environnement sur Netlify.');
-      return;
-    }
-    
-    console.log('Loading Google Maps script with API key:', apiKey.substring(0, 10) + '...');
+    console.log('Loading Google Maps script with API key:', apiKey ? apiKey.substring(0, 10) + '...' : 'N/A');
 
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap&libraries=places,geometry&v=weekly&loading=async`;
