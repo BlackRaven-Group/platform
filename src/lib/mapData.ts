@@ -212,10 +212,15 @@ export async function loadMapLocations(): Promise<MapLocation[]> {
     ];
 
     const responses = await Promise.all(
-      csvFiles.map(url => fetch(url).catch(err => {
-        console.error(`Failed to fetch ${url}:`, err);
-        return null;
-      }))
+      csvFiles.map(url => {
+        // Encode the URL properly to handle spaces and special characters
+        const encodedUrl = encodeURI(url);
+        console.log(`Fetching: ${url} (encoded: ${encodedUrl})`);
+        return fetch(encodedUrl).catch(err => {
+          console.error(`Failed to fetch ${url}:`, err);
+          return null;
+        });
+      })
     );
 
     console.log('CSV responses:', responses.map((r, i) => ({
