@@ -43,10 +43,10 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   }, []);
 
   useEffect(() => {
-    if (scriptLoaded) {
+    if (scriptLoaded && allLocations.length > 0) {
       initializeMap();
     }
-  }, [scriptLoaded]);
+  }, [scriptLoaded, allLocations]);
 
   useEffect(() => {
     updateDisplayedLocations();
@@ -116,20 +116,7 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   };
 
   const initializeMap = () => {
-    console.log('initializeMap called', { 
-      hasMap: !!map.current, 
-      hasContainer: !!mapContainer.current, 
-      hasGoogle: !!window.google?.maps,
-      scriptLoaded 
-    });
-    if (map.current || !mapContainer.current || !window.google?.maps) {
-      console.warn('Map initialization skipped:', { 
-        mapExists: !!map.current, 
-        containerExists: !!mapContainer.current, 
-        googleExists: !!window.google?.maps 
-      });
-      return;
-    }
+    if (map.current || !mapContainer.current || !window.google?.maps) return;
 
     map.current = new window.google.maps.Map(mapContainer.current, {
       center: { lat: 20, lng: 0 },
