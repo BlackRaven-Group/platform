@@ -125,6 +125,7 @@ function App() {
     if (session) {
       setUserType('admin');
       setAuthenticated(true);
+      // checkUserRole will be called by useEffect and will redirect
     }
     setSessionLoading(false);
   };
@@ -363,9 +364,11 @@ function App() {
 
   if (currentView === 'adminLogin' && !authenticated) {
     return <AuthScreen
-      onAuthenticated={() => {
+      onAuthenticated={async () => {
         setAuthenticated(true);
         setUserType('admin');
+        // checkUserRole will be called by useEffect to redirect to dashboard
+        await checkUserRole();
       }}
       onBack={() => setCurrentView('landing')}
     />;
