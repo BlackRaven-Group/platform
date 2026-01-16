@@ -21,6 +21,7 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   const map = useRef<any>(null);
   const markers = useRef<any[]>([]);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
 
   const [allLocations, setAllLocations] = useState<MapLocation[]>([]);
   const [displayedLocations, setDisplayedLocations] = useState<MapLocation[]>([]);
