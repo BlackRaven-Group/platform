@@ -67,7 +67,7 @@ export default function ReportExport({ dossier, targets, onBack }: ReportExportP
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `K3PR0S_INTEL_${dossier.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
+    a.download = `BlackRaven_INTEL_${dossier.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -88,7 +88,7 @@ export default function ReportExport({ dossier, targets, onBack }: ReportExportP
         </button>
         <div>
           <h2 className="text-3xl font-bold text-white mb-2">
-            {'>'} EXPORT K3PR0S REPORT
+            {'>'} EXPORT BLACKRAVEN REPORT
           </h2>
           <p className="text-sm text-zinc-500">GENERATE COMPREHENSIVE INTELLIGENCE DOSSIER</p>
         </div>
@@ -199,11 +199,11 @@ function generateHTMLReport(dossier: Dossier, targetsData: any): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="generator" content="K3PR0S v4.2.1">
+  <meta name="generator" content="BlackRaven v1.0.0">
   <meta name="classification" content="${dossier.classification}">
   <meta name="report-id" content="${reportId}">
   <meta name="generated" content="${timestamp}">
-  <title>K3PR0S INTELLIGENCE REPORT - ${dossier.title}</title>
+  <title>BLACKRAVEN INTELLIGENCE REPORT - ${dossier.title}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -384,7 +384,7 @@ function generateHTMLReport(dossier: Dossier, targetsData: any): string {
   <div class="container">
     <div class="header">
       <div>
-        <h1>⬢ K3PR0S INTELLIGENCE REPORT</h1>
+        <h1>⬢ BLACKRAVEN INTELLIGENCE REPORT</h1>
         <div class="meta">
           <div>REPORT ID: ${reportId}</div>
           <div>DOSSIER: ${dossier.title}</div>
@@ -654,7 +654,7 @@ function generateHTMLReport(dossier: Dossier, targetsData: any): string {
     }).join('')}
 
     <div class="footer">
-      <div style="font-size: 12px; font-weight: bold;">K3PR0S INTELLIGENCE FRAMEWORK</div>
+      <div style="font-size: 12px; font-weight: bold;">BLACKRAVEN INTELLIGENCE PLATFORM</div>
       <div style="margin-top: 8px;">REPORT ID: ${reportId} | GENERATED: ${timestamp}</div>
     </div>
   </div>

@@ -29,7 +29,7 @@ export default function AuthScreen({ onAuthenticated, onBack }: AuthScreenProps)
       return;
     }
 
-    const email = username.includes('@') ? username : `${username}@k3pr0s.local`;
+    const email = username.includes('@') ? username : `${username}@blackraven.local`;
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,

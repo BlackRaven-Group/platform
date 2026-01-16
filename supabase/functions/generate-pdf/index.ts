@@ -90,7 +90,7 @@ Deno.serve(async (req: Request) => {
       headers: {
         ...corsHeaders,
         "Content-Type": "application/pdf",
-        "Content-Disposition": "attachment; filename=K3PR0S_Report.pdf",
+        "Content-Disposition": "attachment; filename=BlackRaven_Report.pdf",
       },
     });
   } catch (error) {

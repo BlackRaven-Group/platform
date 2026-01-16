@@ -12,16 +12,16 @@
     - This prepares database for proper API-based user creation
   
   3. Changes
-    - Delete all k3pr0s.local admin role entries
-    - Delete all k3pr0s.local auth.users entries
+    - Delete all blackraven.local admin role entries
+    - Delete all blackraven.local auth.users entries
     - System will be clean for Edge Function to create users properly
 */
 
--- Step 1: Delete admin_roles entries for all k3pr0s.local users
+-- Step 1: Delete admin_roles entries for all blackraven.local users
 DELETE FROM admin_roles 
 WHERE user_id IN (
   SELECT id FROM auth.users 
-  WHERE email LIKE '%k3pr0s.local%' OR email LIKE '%test.local%'
+  WHERE email LIKE '%blackraven.local%' OR email LIKE '%test.local%'
 );
 
 -- Step 2: We cannot directly delete from auth.users in migrations

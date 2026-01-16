@@ -17,7 +17,7 @@ interface AdminConfig {
 
 const ADMIN_CONFIGS: AdminConfig[] = [
   {
-    email: "super_admin@k3pr0s.local",
+    email: "super_admin@blackraven.local",
     password: "SuperAdmin2025!",
     username: "super_admin",
     role: "super_admin",
@@ -32,7 +32,7 @@ const ADMIN_CONFIGS: AdminConfig[] = [
     },
   },
   {
-    email: "admin@k3pr0s.local",
+    email: "admin@blackraven.local",
     password: "Admin2025!",
     username: "admin",
     role: "admin",
@@ -47,7 +47,7 @@ const ADMIN_CONFIGS: AdminConfig[] = [
     },
   },
   {
-    email: "support@k3pr0s.local",
+    email: "support@blackraven.local",
     password: "Support2025!",
     username: "support",
     role: "support",

@@ -3,14 +3,14 @@
 
   1. Purpose
     - Fix the domain for test admin users to match authentication system
-    - Change from @test.local to @k3pr0s.local
+    - Change from @test.local to @blackraven.local
     - Ensure proper authentication flow
     - Handle foreign key constraints properly
 
   2. Users Updated
-    - super_admin@k3pr0s.local (Super Admin) - Full access
-    - admin@k3pr0s.local (Admin) - OSINT & Dossiers
-    - support@k3pr0s.local (Support) - Tickets & Client Relations
+    - super_admin@blackraven.local (Super Admin) - Full access
+    - admin@blackraven.local (Admin) - OSINT & Dossiers
+    - support@blackraven.local (Support) - Tickets & Client Relations
 
   3. Test Credentials
     - All users have password: TestPass123!
@@ -20,12 +20,12 @@
 DELETE FROM admin_roles 
 WHERE user_id IN (
   SELECT id FROM auth.users 
-  WHERE email IN ('super_admin@test.local', 'admin@test.local', 'support@test.local', 'super_admin@k3pr0s.local', 'admin@k3pr0s.local', 'support@k3pr0s.local')
+  WHERE email IN ('super_admin@test.local', 'admin@test.local', 'support@test.local', 'super_admin@blackraven.local', 'admin@blackraven.local', 'support@blackraven.local')
 );
 
 -- Clean up existing test users
 DELETE FROM auth.users 
-WHERE email IN ('super_admin@test.local', 'admin@test.local', 'support@test.local', 'super_admin@k3pr0s.local', 'admin@k3pr0s.local', 'support@k3pr0s.local');
+WHERE email IN ('super_admin@test.local', 'admin@test.local', 'support@test.local', 'super_admin@blackraven.local', 'admin@blackraven.local', 'support@blackraven.local');
 
 -- Create Super Admin User
 DO $$
@@ -55,7 +55,7 @@ BEGIN
     gen_random_uuid(),
     'authenticated',
     'authenticated',
-    'super_admin@k3pr0s.local',
+    'super_admin@blackraven.local',
     crypt('TestPass123!', gen_salt('bf')),
     NOW(),
     NOW(),
@@ -89,7 +89,7 @@ BEGIN
     gen_random_uuid(),
     'authenticated',
     'authenticated',
-    'admin@k3pr0s.local',
+    'admin@blackraven.local',
     crypt('TestPass123!', gen_salt('bf')),
     NOW(),
     NOW(),
@@ -123,7 +123,7 @@ BEGIN
     gen_random_uuid(),
     'authenticated',
     'authenticated',
-    'support@k3pr0s.local',
+    'support@blackraven.local',
     crypt('TestPass123!', gen_salt('bf')),
     NOW(),
     NOW(),

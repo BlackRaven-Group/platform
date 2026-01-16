@@ -32,12 +32,12 @@ Deno.serve(async (req: Request) => {
 
     const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
     const adminExists = existingUser?.users?.some(
-      (u) => u.email === "superadmin@k3pr0s.local"
+      (u) => u.email === "superadmin@blackraven.local"
     );
 
     if (adminExists) {
       const adminUser = existingUser?.users?.find(
-        (u) => u.email === "superadmin@k3pr0s.local"
+        (u) => u.email === "superadmin@blackraven.local"
       );
 
       if (adminUser) {
@@ -94,7 +94,7 @@ Deno.serve(async (req: Request) => {
             success: true,
             message: "Super admin updated successfully",
             credentials: {
-              email: "superadmin@k3pr0s.local",
+              email: "superadmin@blackraven.local",
               password: "SuperAdmin2025",
               username: "superadmin"
             },
@@ -115,7 +115,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email: "superadmin@k3pr0s.local",
+      email: "superadmin@blackraven.local",
       password: "SuperAdmin2025",
       email_confirm: true,
       user_metadata: { username: "superadmin" },
@@ -157,7 +157,7 @@ Deno.serve(async (req: Request) => {
         success: true,
         message: "Super admin created successfully",
         credentials: {
-          email: "superadmin@k3pr0s.local",
+          email: "superadmin@blackraven.local",
           password: "SuperAdmin2025",
           username: "superadmin"
         },

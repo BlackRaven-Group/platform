@@ -7,10 +7,10 @@
     - Prepare database for proper user creation via Edge Function
   
   2. Users to Remove
-    - super_admin@k3pr0s.local
-    - admin@k3pr0s.local
-    - support@k3pr0s.local
-    - superadmin@k3pr0s.local (duplicate)
+    - super_admin@blackraven.local
+    - admin@blackraven.local
+    - support@blackraven.local
+    - superadmin@blackraven.local (duplicate)
     - All @test.local users
   
   3. Process
@@ -19,7 +19,7 @@
     - This ensures clean state for setup-admin-users edge function
   
   4. Security
-    - This will NOT affect the original superadmin@k3pr0s.local if it exists
+    - This will NOT affect the original superadmin@blackraven.local if it exists
     - Only removes users created in test migrations
 */
 
@@ -28,10 +28,10 @@ DELETE FROM admin_roles
 WHERE user_id IN (
   SELECT id FROM auth.users 
   WHERE email IN (
-    'super_admin@k3pr0s.local',
-    'admin@k3pr0s.local',
-    'support@k3pr0s.local',
-    'superadmin@k3pr0s.local',
+    'super_admin@blackraven.local',
+    'admin@blackraven.local',
+    'support@blackraven.local',
+    'superadmin@blackraven.local',
     'super_admin@test.local',
     'admin@test.local',
     'support@test.local'

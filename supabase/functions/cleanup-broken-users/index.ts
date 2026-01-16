@@ -48,10 +48,10 @@ Deno.serve(async (req: Request) => {
     console.log(`Found ${allUsers?.users?.length || 0} total users`);
 
     const brokenEmails = [
-      "super_admin@k3pr0s.local",
-      "admin@k3pr0s.local",
-      "support@k3pr0s.local",
-      "superadmin@k3pr0s.local",
+      "super_admin@blackraven.local",
+      "admin@blackraven.local",
+      "support@blackraven.local",
+      "superadmin@blackraven.local",
       "super_admin@test.local",
       "admin@test.local",
       "support@test.local",
