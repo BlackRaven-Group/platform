@@ -126,12 +126,29 @@ export function searchLocations(locations: MapLocation[], query: string): MapLoc
 
 export async function loadMapLocations(): Promise<MapLocation[]> {
   try {
+    console.log('🔵 loadMapLocations: Starting to fetch CSV files...');
     const [response1, response2, response3, response7] = await Promise.all([
       fetch('/data/Google map - Google map-1 -by MaxAI.csv'),
       fetch('/data/Google map - Google map-2 -by MaxAI.csv'),
       fetch('/data/Google map - Google map-3 -by MaxAI.csv'),
       fetch('/data/Google map - Google map-7 -by MaxAI.csv')
     ]);
+
+    console.log('🔵 loadMapLocations: Responses received', {
+      r1: response1.status,
+      r2: response2.status,
+      r3: response3.status,
+      r7: response7.status
+    });
+
+    if (!response1.ok || !response2.ok || !response3.ok || !response7.ok) {
+      console.error('❌ Some CSV files failed to load!', {
+        r1: response1.statusText,
+        r2: response2.statusText,
+        r3: response3.statusText,
+        r7: response7.statusText
+      });
+    }
 
     const [csv1, csv2, csv3, csv7] = await Promise.all([
       response1.text(),
@@ -140,14 +157,30 @@ export async function loadMapLocations(): Promise<MapLocation[]> {
       response7.text()
     ]);
 
+    console.log('🔵 loadMapLocations: CSV content lengths', {
+      csv1: csv1.length,
+      csv2: csv2.length,
+      csv3: csv3.length,
+      csv7: csv7.length
+    });
+
     const locations1 = parseCSVLocations(csv1);
     const locations2 = parseCSVLocations(csv2);
     const locations3 = parseCSVLocations(csv3);
     const locations7 = parseCSVLocations(csv7);
 
-    return [...locations1, ...locations2, ...locations3, ...locations7];
+    console.log('🔵 loadMapLocations: Parsed locations', {
+      loc1: locations1.length,
+      loc2: locations2.length,
+      loc3: locations3.length,
+      loc7: locations7.length
+    });
+
+    const total = [...locations1, ...locations2, ...locations3, ...locations7];
+    console.log('✅ loadMapLocations: Total locations:', total.length);
+    return total;
   } catch (error) {
-    console.error('Error loading map data:', error);
+    console.error('❌ Error loading map data:', error);
     return [];
   }
 }

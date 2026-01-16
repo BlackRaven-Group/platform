@@ -108,11 +108,14 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
       setDisplayedLocations(mappedPins);
     } else {
       setUseDatabase(false);
+      console.log('🔵 No database pins, loading from CSV...');
       const locations = await loadMapLocations();
+      console.log('🔵 CSV locations received:', locations.length);
       setAllLocations(locations);
       setCategoryStats(getCategoryStats(locations));
       setDisplayedLocations(locations);
       setTotalPinsCount(locations.length);
+      console.log('✅ All locations set, total:', locations.length);
     }
 
     setLoading(false);
