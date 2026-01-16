@@ -20,44 +20,9 @@ export interface MapBounds {
 }
 
 export async function ensureMapPinsTables() {
-  const migration = `
-    CREATE TABLE IF NOT EXISTS map_pins (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      title text NOT NULL DEFAULT '',
-      note text DEFAULT '',
-      lat numeric(10, 7) NOT NULL,
-      lng numeric(10, 7) NOT NULL,
-      type text NOT NULL DEFAULT 'other',
-      agency text,
-      category text NOT NULL DEFAULT 'Other',
-      created_at timestamptz DEFAULT now(),
-      updated_at timestamptz DEFAULT now(),
-      CONSTRAINT unique_coordinates UNIQUE (lat, lng)
-    );
-
-    CREATE TABLE IF NOT EXISTS map_categories (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      name text UNIQUE NOT NULL,
-      color text NOT NULL,
-      icon text NOT NULL,
-      pin_type text,
-      created_at timestamptz DEFAULT now()
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_map_pins_coordinates ON map_pins (lat, lng);
-    CREATE INDEX IF NOT EXISTS idx_map_pins_type ON map_pins (type);
-    CREATE INDEX IF NOT EXISTS idx_map_pins_category ON map_pins (category);
-    CREATE INDEX IF NOT EXISTS idx_map_pins_agency ON map_pins (agency);
-  `;
-
-  try {
-    const { error } = await supabase.rpc('exec_sql', { sql: migration });
-    if (error) {
-      console.warn('Migration warning:', error);
-    }
-  } catch (err) {
-    console.warn('Could not run migration, tables may already exist:', err);
-  }
+  // Tables are now created via Supabase migrations
+  // This function only ensures default categories exist
+  // Migration: 20251104000001_create_map_pins_table.sql
 
   const categories = [
     { name: 'CIA', color: '#dc2626', icon: '🎯', pin_type: 'agency' },
