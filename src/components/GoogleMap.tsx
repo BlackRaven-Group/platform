@@ -68,7 +68,15 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
       setScriptLoaded(true);
     };
 
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    // Try to get API key from environment variable
+    let apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    // Fallback for development if env var is not loaded (Vite needs server restart)
+    if (!apiKey && import.meta.env.DEV) {
+      console.warn('VITE_GOOGLE_MAPS_API_KEY not found in env, using fallback for development');
+      apiKey = 'AIzaSyAFF8jaSgdtVF85TQcMPnzlUJy5NtUs88g';
+    }
+    
     console.log('Google Maps API Key check:', apiKey ? 'Found' : 'Missing');
     if (!apiKey) {
       console.error('VITE_GOOGLE_MAPS_API_KEY is not set');
