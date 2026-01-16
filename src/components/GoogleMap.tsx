@@ -70,6 +70,8 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
       console.error('VITE_GOOGLE_MAPS_API_KEY is not set');
+      console.error('Available env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
+      setApiKeyError('VITE_GOOGLE_MAPS_API_KEY n\'est pas configurée. Vérifiez votre fichier .env ou les variables d\'environnement sur Netlify.');
       return;
     }
 
@@ -280,6 +282,17 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
       }
     }
   };
+
+  if (apiKeyError) {
+    return (
+      <div className="terminal-box flex items-center justify-center h-screen">
+        <div className="text-red-500 text-center p-4">
+          <div className="text-xl font-bold mb-2">⚠️ Erreur de configuration</div>
+          <div className="text-sm">{apiKeyError}</div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !scriptLoaded) {
     return (
