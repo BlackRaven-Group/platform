@@ -13,18 +13,32 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
   const lines = csvContent.split('\n').slice(1);
   const locations: MapLocation[] = [];
   let idCounter = 0;
+  let matchedCount = 0;
+  let skippedCount = 0;
+
+  console.log('Parsing CSV with', lines.length, 'lines');
 
   for (const line of lines) {
-    if (!line.trim()) continue;
+    if (!line.trim()) {
+      skippedCount++;
+      continue;
+    }
 
     const match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
-    if (!match) continue;
+    if (!match) {
+      skippedCount++;
+      continue;
+    }
 
     const note = match[1]?.trim() || '';
     const lat = parseFloat(match[2]);
     const lng = parseFloat(match[3]);
 
-    if (isNaN(lat) || isNaN(lng)) continue;
+    if (isNaN(lat) || isNaN(lng)) {
+      skippedCount++;
+      console.warn('Invalid coordinates in line:', line.substring(0, 100));
+      continue;
+    }
 
     const category = detectCategory(note);
     const color = getCategoryColor(category);
@@ -39,8 +53,10 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
       category,
       color
     });
+    matchedCount++;
   }
 
+  console.log(`Parsed ${matchedCount} locations, skipped ${skippedCount} lines`);
   return locations;
 }
 
