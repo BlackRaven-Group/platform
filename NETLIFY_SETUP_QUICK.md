@@ -23,6 +23,7 @@ VITE_SUPABASE_ANON_KEY=[votre-clé-anon]
 RESEND_API_KEY=[votre-clé-resend]
 SITE_PGP_ENCRYPTED_PRIVATE_KEY=[votre-clé-pgp]
 BROWSERLESS_API_KEY=[votre-clé-browserless]
+VITE_GOOGLE_MAPS_API_KEY=[votre-clé-google-maps]
 ```
 
 ### 4️⃣ Domaines Personnalisés
@@ -56,6 +57,7 @@ Value: [votre-site].netlify.app
 | `RESEND_API_KEY` | Resend Dashboard → API Keys |
 | `SITE_PGP_ENCRYPTED_PRIVATE_KEY` | Générée avec pgpkeygen.com |
 | `BROWSERLESS_API_KEY` | Browserless Dashboard → API Keys |
+| `VITE_GOOGLE_MAPS_API_KEY` | Google Cloud Console → Credentials → API Keys |
 
 ## ✅ Après le déploiement
 

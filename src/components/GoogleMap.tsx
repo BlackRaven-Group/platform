@@ -67,8 +67,14 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
       setScriptLoaded(true);
     };
 
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      console.error('VITE_GOOGLE_MAPS_API_KEY is not set');
+      return;
+    }
+
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAFF8jaSgdtVF85TQcMPnzlUJy5NtUs88g&callback=initGoogleMap&libraries=places,geometry&v=weekly`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap&libraries=places,geometry&v=weekly`;
     script.async = true;
     script.defer = true;
     document.head.appendChild(script);

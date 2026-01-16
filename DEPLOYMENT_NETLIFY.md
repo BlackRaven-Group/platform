@@ -83,6 +83,7 @@ Une fois le déploiement terminé :
    RESEND_API_KEY=votre-clé-resend
    SITE_PGP_ENCRYPTED_PRIVATE_KEY=votre-clé-pgp-encryptée
    BROWSERLESS_API_KEY=votre-clé-browserless
+   VITE_GOOGLE_MAPS_API_KEY=votre-clé-google-maps
    ```
 
 ### Option 2 : Deux sites Netlify séparés (recommandé pour plus de contrôle)
@@ -120,6 +121,7 @@ Value: [votre-site-op].netlify.app
 | `RESEND_API_KEY` | Clé API Resend pour l'envoi d'emails | Dashboard Resend → API Keys |
 | `SITE_PGP_ENCRYPTED_PRIVATE_KEY` | Clé privée PGP encryptée du site | Générée avec pgpkeygen.com |
 | `BROWSERLESS_API_KEY` | Clé API Browserless pour le scraping | Dashboard Browserless |
+| `VITE_GOOGLE_MAPS_API_KEY` | Clé API Google Maps | Google Cloud Console → Credentials |
 
 ## Tester en local
 

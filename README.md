@@ -29,11 +29,24 @@ npm run dev
 
 ## 🔐 Variables d'environnement
 
-Créez un fichier `.env` à la racine :
+Créez un fichier `.env` à la racine (copiez depuis `.env.example`) :
 
 ```env
+# Supabase
 VITE_SUPABASE_URL=https://votre-projet.supabase.co
 VITE_SUPABASE_ANON_KEY=votre-clé-anon-publique
+
+# Email (Resend)
+RESEND_API_KEY=votre-clé-resend
+
+# PGP
+SITE_PGP_ENCRYPTED_PRIVATE_KEY=votre-clé-pgp-encryptée
+
+# Browserless (scraping)
+BROWSERLESS_API_KEY=votre-clé-browserless
+
+# Google Maps
+VITE_GOOGLE_MAPS_API_KEY=votre-clé-google-maps
 ```
 
 ## 📁 Structure du projet
