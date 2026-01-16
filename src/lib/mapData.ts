@@ -133,72 +133,26 @@ export function searchLocations(locations: MapLocation[], query: string): MapLoc
 
 export async function loadMapLocations(): Promise<MapLocation[]> {
   try {
-    console.log('Fetching CSV files from /data/...');
-    const csvFiles = [
-      '/data/Google map - Google map-1 -by MaxAI.csv',
-      '/data/Google map - Google map-2 -by MaxAI.csv',
-      '/data/Google map - Google map-3 -by MaxAI.csv',
-      '/data/Google map - Google map-7 -by MaxAI.csv'
-    ];
+    const [response1, response2, response3, response7] = await Promise.all([
+      fetch('/data/Google map - Google map-1 -by MaxAI.csv'),
+      fetch('/data/Google map - Google map-2 -by MaxAI.csv'),
+      fetch('/data/Google map - Google map-3 -by MaxAI.csv'),
+      fetch('/data/Google map - Google map-7 -by MaxAI.csv')
+    ]);
 
-    const responses = await Promise.all(
-      csvFiles.map(url => {
-        // Encode the URL properly to handle spaces and special characters
-        const encodedUrl = encodeURI(url);
-        console.log(`Fetching: ${url} (encoded: ${encodedUrl})`);
-        return fetch(encodedUrl).catch(err => {
-          console.error(`Failed to fetch ${url}:`, err);
-          return null;
-        });
-      })
-    );
+    const [csv1, csv2, csv3, csv7] = await Promise.all([
+      response1.text(),
+      response2.text(),
+      response3.text(),
+      response7.text()
+    ]);
 
-    console.log('CSV responses:', responses.map((r, i) => ({
-      file: csvFiles[i],
-      status: r?.status,
-      ok: r?.ok,
-      statusText: r?.statusText
-    })));
+    const locations1 = parseCSVLocations(csv1);
+    const locations2 = parseCSVLocations(csv2);
+    const locations3 = parseCSVLocations(csv3);
+    const locations7 = parseCSVLocations(csv7);
 
-    const failed = responses.filter(r => !r || !r.ok);
-    if (failed.length > 0) {
-      console.error('Some CSV files failed to load:', failed.length);
-    }
-
-    const csvContents = await Promise.all(
-      responses.map(async (r, i) => {
-        if (!r || !r.ok) {
-          console.warn(`Skipping ${csvFiles[i]} due to fetch error`);
-          return '';
-        }
-        try {
-          return await r.text();
-        } catch (err) {
-          console.error(`Error reading text from ${csvFiles[i]}:`, err);
-          return '';
-        }
-      })
-    );
-
-    console.log('CSV content lengths:', csvContents.map((c, i) => ({
-      file: csvFiles[i],
-      length: c.length
-    })));
-
-    const allLocations: MapLocation[] = [];
-    csvContents.forEach((csv, i) => {
-      if (csv) {
-        const locations = parseCSVLocations(csv);
-        console.log(`Parsed ${locations.length} locations from ${csvFiles[i]}`);
-        allLocations.push(...locations);
-      }
-    });
-
-    console.log('Total locations loaded:', allLocations.length);
-    if (allLocations.length > 0) {
-      console.log('Sample location:', allLocations[0]);
-    }
-    return allLocations;
+    return [...locations1, ...locations2, ...locations3, ...locations7];
   } catch (error) {
     console.error('Error loading map data:', error);
     return [];

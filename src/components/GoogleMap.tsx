@@ -38,7 +38,6 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   const [totalPinsCount, setTotalPinsCount] = useState(0);
 
   useEffect(() => {
-    console.log('🔵 GoogleMap component mounted, calling loadData and loadGoogleMapsScript');
     loadData();
     loadGoogleMapsScript();
   }, []);
@@ -83,15 +82,10 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
 
   const loadData = async () => {
     setLoading(true);
-    console.log('=== Starting loadData ===');
 
-    try {
-      console.log('Ensuring map pins tables...');
-      await ensureMapPinsTables();
-      console.log('✅ Map pins tables ensured');
+    await ensureMapPinsTables();
 
-      const dbPins = await loadMapPinsFromDatabase(undefined, undefined, undefined, 100);
-      console.log('Database pins loaded:', dbPins.length, dbPins);
+    const dbPins = await loadMapPinsFromDatabase(undefined, undefined, undefined, 100);
 
     if (dbPins.length > 0) {
       setUseDatabase(true);
@@ -108,51 +102,20 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
         color: '#64748b',
         icon: '📍'
       }));
-      console.log('Mapped pins:', mappedPins.length, mappedPins.slice(0, 2));
       setAllLocations(mappedPins);
       const stats = await getDbCategoryStats();
       setCategoryStats(stats);
       setDisplayedLocations(mappedPins);
-      console.log('Using database pins:', mappedPins.length);
     } else {
       setUseDatabase(false);
-      console.log('No database pins, loading from CSV files...');
-      try {
-        const locations = await loadMapLocations();
-        console.log('CSV locations loaded:', locations.length);
-        if (locations.length > 0) {
-          console.log('First location sample:', locations[0]);
-          setAllLocations(locations);
-          setCategoryStats(getCategoryStats(locations));
-          setDisplayedLocations(locations);
-          setTotalPinsCount(locations.length);
-          console.log('All locations set:', locations.length, 'Total pins count:', locations.length);
-        } else {
-          console.error('⚠️ WARNING: No locations loaded from CSV files!');
-          console.error('This could mean:');
-          console.error('1. CSV files are not accessible');
-          console.error('2. CSV parsing failed');
-          console.error('3. CSV files are empty');
-          // Set empty arrays to show 0/0 pins
-          setAllLocations([]);
-          setCategoryStats({});
-          setDisplayedLocations([]);
-          setTotalPinsCount(0);
-        }
-      } catch (error) {
-        console.error('Error loading CSV locations:', error);
-        setAllLocations([]);
-        setCategoryStats({});
-        setDisplayedLocations([]);
-        setTotalPinsCount(0);
-      }
+      const locations = await loadMapLocations();
+      setAllLocations(locations);
+      setCategoryStats(getCategoryStats(locations));
+      setDisplayedLocations(locations);
+      setTotalPinsCount(locations.length);
     }
-    } catch (error) {
-      console.error('Error in loadData:', error);
-    } finally {
-      setLoading(false);
-      console.log('=== loadData complete, loading set to false ===');
-    }
+
+    setLoading(false);
   };
 
   const initializeMap = () => {
