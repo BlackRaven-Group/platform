@@ -91,10 +91,15 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     console.log('Loading Google Maps script with API key:', apiKey ? apiKey.substring(0, 10) + '...' : 'N/A');
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap&libraries=places,geometry&v=weekly&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap&libraries=places,geometry&v=weekly`;
     script.async = true;
     script.defer = true;
+    script.onerror = (error) => {
+      console.error('Failed to load Google Maps script:', error);
+      setApiKeyError('Erreur lors du chargement de Google Maps. Vérifiez votre clé API.');
+    };
     document.head.appendChild(script);
+    console.log('Google Maps script tag added to head');
   };
 
   const loadData = async () => {
