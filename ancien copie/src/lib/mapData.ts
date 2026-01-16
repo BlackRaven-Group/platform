@@ -127,10 +127,10 @@ export function searchLocations(locations: MapLocation[], query: string): MapLoc
 export async function loadMapLocations(): Promise<MapLocation[]> {
   try {
     const [response1, response2, response3, response7] = await Promise.all([
-      fetch('/data/Google map - Google map-1 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-2 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-3 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-7 -by MaxAI.csv')
+      fetch('/src/data/Google map - Google map-1 -by MaxAI.csv'),
+      fetch('/src/data/Google map - Google map-2 -by MaxAI.csv'),
+      fetch('/src/data/Google map - Google map-3 -by MaxAI.csv'),
+      fetch('/src/data/Google map - Google map-7 -by MaxAI.csv')
     ]);
 
     const [csv1, csv2, csv3, csv7] = await Promise.all([
