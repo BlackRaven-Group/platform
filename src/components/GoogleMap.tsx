@@ -44,14 +44,13 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   }, []);
 
   useEffect(() => {
-    if (scriptLoaded && !loading && allLocations.length >= 0) {
+    // Use the same condition as the old version - only initialize when we have locations
+    if (scriptLoaded && allLocations.length > 0) {
       if (!map.current) {
         initializeMap();
-      } else {
-        updateMarkers();
       }
     }
-  }, [scriptLoaded, loading, allLocations.length]);
+  }, [scriptLoaded, allLocations]);
 
   useEffect(() => {
     updateDisplayedLocations();
