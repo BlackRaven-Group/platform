@@ -43,10 +43,10 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   }, []);
 
   useEffect(() => {
-    if (scriptLoaded && allLocations.length > 0) {
+    if (scriptLoaded) {
       initializeMap();
     }
-  }, [scriptLoaded, allLocations]);
+  }, [scriptLoaded]);
 
   useEffect(() => {
     updateDisplayedLocations();
