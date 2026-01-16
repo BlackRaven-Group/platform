@@ -83,6 +83,7 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     await ensureMapPinsTables();
 
     const dbPins = await loadMapPinsFromDatabase(undefined, undefined, undefined, 100);
+    console.log('Database pins loaded:', dbPins.length);
 
     if (dbPins.length > 0) {
       setUseDatabase(true);
@@ -103,13 +104,17 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
       const stats = await getDbCategoryStats();
       setCategoryStats(stats);
       setDisplayedLocations(mappedPins);
+      console.log('Using database pins:', mappedPins.length);
     } else {
       setUseDatabase(false);
+      console.log('Loading from CSV files...');
       const locations = await loadMapLocations();
+      console.log('CSV locations loaded:', locations.length);
       setAllLocations(locations);
       setCategoryStats(getCategoryStats(locations));
       setDisplayedLocations(locations);
       setTotalPinsCount(locations.length);
+      console.log('All locations set:', locations.length);
     }
 
     setLoading(false);
