@@ -77,7 +77,7 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     }
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap&libraries=places,geometry&v=weekly`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap&libraries=places,geometry&v=weekly&loading=async`;
     script.async = true;
     script.defer = true;
     document.head.appendChild(script);
