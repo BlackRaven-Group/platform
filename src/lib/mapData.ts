@@ -63,7 +63,7 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
     if (fields.length < 3) {
       skippedCount++;
       if (skippedCount <= 5) {
-        console.warn('Line has insufficient fields:', fields.length, line.substring(0, 100));
+        console.warn('Line has insufficient fields:', fields.length, 'Fields:', fields, 'Line:', line.substring(0, 100));
       }
       continue;
     }
@@ -73,7 +73,12 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
     // fields[2] = "https://www.google.com/maps/search/-8.9040006,39.5060725" (URL)
     
     const note = fields[1]?.trim() || '';
-    const url = fields[2]?.trim() || '';
+    let url = fields[2]?.trim() || '';
+    
+    // Remove surrounding quotes if present
+    if (url.startsWith('"') && url.endsWith('"')) {
+      url = url.slice(1, -1);
+    }
     
     // Extract coordinates from URL
     // Format: "https://www.google.com/maps/search/lat,lng"
@@ -82,7 +87,7 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
     if (!urlMatch) {
       skippedCount++;
       if (skippedCount <= 5) {
-        console.warn('URL does not contain valid coordinates:', url);
+        console.warn('URL does not contain valid coordinates. URL:', url, 'Fields:', fields);
       }
       continue;
     }
@@ -199,58 +204,66 @@ export function searchLocations(locations: MapLocation[], query: string): MapLoc
 export async function loadMapLocations(): Promise<MapLocation[]> {
   try {
     console.log('Fetching CSV files from /data/...');
-    const [response1, response2, response3, response7] = await Promise.all([
-      fetch('/data/Google map - Google map-1 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-2 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-3 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-7 -by MaxAI.csv')
-    ]);
+    const csvFiles = [
+      '/data/Google map - Google map-1 -by MaxAI.csv',
+      '/data/Google map - Google map-2 -by MaxAI.csv',
+      '/data/Google map - Google map-3 -by MaxAI.csv',
+      '/data/Google map - Google map-7 -by MaxAI.csv'
+    ];
 
-    console.log('CSV responses:', {
-      r1: response1.status,
-      r2: response2.status,
-      r3: response3.status,
-      r7: response7.status
-    });
+    const responses = await Promise.all(
+      csvFiles.map(url => fetch(url).catch(err => {
+        console.error(`Failed to fetch ${url}:`, err);
+        return null;
+      }))
+    );
 
-    if (!response1.ok || !response2.ok || !response3.ok || !response7.ok) {
-      console.error('Some CSV files failed to load:', {
-        r1: response1.statusText,
-        r2: response2.statusText,
-        r3: response3.statusText,
-        r7: response7.statusText
-      });
+    console.log('CSV responses:', responses.map((r, i) => ({
+      file: csvFiles[i],
+      status: r?.status,
+      ok: r?.ok,
+      statusText: r?.statusText
+    })));
+
+    const failed = responses.filter(r => !r || !r.ok);
+    if (failed.length > 0) {
+      console.error('Some CSV files failed to load:', failed.length);
     }
 
-    const [csv1, csv2, csv3, csv7] = await Promise.all([
-      response1.text(),
-      response2.text(),
-      response3.text(),
-      response7.text()
-    ]);
+    const csvContents = await Promise.all(
+      responses.map(async (r, i) => {
+        if (!r || !r.ok) {
+          console.warn(`Skipping ${csvFiles[i]} due to fetch error`);
+          return '';
+        }
+        try {
+          return await r.text();
+        } catch (err) {
+          console.error(`Error reading text from ${csvFiles[i]}:`, err);
+          return '';
+        }
+      })
+    );
 
-    console.log('CSV content lengths:', {
-      csv1: csv1.length,
-      csv2: csv2.length,
-      csv3: csv3.length,
-      csv7: csv7.length
+    console.log('CSV content lengths:', csvContents.map((c, i) => ({
+      file: csvFiles[i],
+      length: c.length
+    })));
+
+    const allLocations: MapLocation[] = [];
+    csvContents.forEach((csv, i) => {
+      if (csv) {
+        const locations = parseCSVLocations(csv);
+        console.log(`Parsed ${locations.length} locations from ${csvFiles[i]}`);
+        allLocations.push(...locations);
+      }
     });
 
-    const locations1 = parseCSVLocations(csv1);
-    const locations2 = parseCSVLocations(csv2);
-    const locations3 = parseCSVLocations(csv3);
-    const locations7 = parseCSVLocations(csv7);
-
-    console.log('Parsed locations:', {
-      loc1: locations1.length,
-      loc2: locations2.length,
-      loc3: locations3.length,
-      loc7: locations7.length
-    });
-
-    const all = [...locations1, ...locations2, ...locations3, ...locations7];
-    console.log('Total locations:', all.length);
-    return all;
+    console.log('Total locations loaded:', allLocations.length);
+    if (allLocations.length > 0) {
+      console.log('Sample location:', allLocations[0]);
+    }
+    return allLocations;
   } catch (error) {
     console.error('Error loading map data:', error);
     return [];
