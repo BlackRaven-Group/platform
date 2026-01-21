@@ -195,10 +195,21 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     }
 
     console.log('Updating markers with', displayedLocations.length, 'locations');
+    
+    // Clear existing markers
     markers.current.forEach(marker => marker.setMap(null));
     markers.current = [];
 
-    displayedLocations.forEach(location => {
+    if (displayedLocations.length === 0) {
+      console.warn('No locations to display on map');
+      return;
+    }
+
+    displayedLocations.forEach((location, index) => {
+      if (isNaN(location.lat) || isNaN(location.lng)) {
+        console.warn(`Invalid coordinates for location ${index}:`, location);
+        return;
+      }
       const marker = new window.google.maps.Marker({
         position: { lat: location.lat, lng: location.lng },
         map: map.current,
