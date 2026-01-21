@@ -856,6 +856,7 @@ function App() {
               onOpenOSINT={() => setCurrentView('osint')}
               onOpenMap={() => setCurrentView('map')}
               onOpenSurveillance={() => setCurrentView('surveillance')}
+              onDeleteDossier={handleDeleteDossier}
             />
           )}
 
