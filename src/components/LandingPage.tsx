@@ -144,7 +144,7 @@ export default function LandingPage({ onAccessServices, onAdminAccess, onGoToLeg
                 <div className="terminal-card-team group">
                   <div className="flex items-center justify-center w-24 h-24 border-2 border-zinc-800 mb-4 mx-auto group-hover:border-amber-600 transition-all rounded-full bg-black/80 overflow-hidden">
                     <svg viewBox="0 0 100 100" className="w-16 h-16 text-white">
-                      <path d="M50 15 Q45 20 42 25 Q40 30 38 35 Q35 40 34 45 Q32 50 32 55 Q30 60 32 65 Q34 70 38 73 Q42 76 48 75 Q52 74 55 70 Q58 66 60 62 Q62 58 65 55 Q68 52 70 48 Q72 44 72 40 Q72 36 70 32 Q68 28 66 25 Q64 22 62 20 Q60 18 58 17 Q56 16 54 16 Q52 16 50 15 M45 22 Q48 24 50 28 Q52 32 52 36 Q52 40 50 44 Q48 48 45 48 Q42 48 40 44 Q38 40 38 36 Q38 32 40 28 Q42 24 45 22" fill="currentColor" stroke="currentColor" stroke-width="2"/>
+                      <path d="M50 15 Q45 20 42 25 Q40 30 38 35 Q35 40 34 45 Q32 50 32 55 Q30 60 32 65 Q34 70 38 73 Q42 76 48 75 Q52 74 55 70 Q58 66 60 62 Q62 58 65 55 Q68 52 70 48 Q72 44 72 40 Q72 36 70 32 Q68 28 66 25 Q64 22 62 20 Q60 18 58 17 Q56 16 54 16 Q52 16 50 15 M45 22 Q48 24 50 28 Q52 32 52 36 Q52 40 50 44 Q48 48 45 48 Q42 48 40 44 Q38 40 38 36 Q38 32 40 28 Q42 24 45 22" fill="currentColor" stroke="currentColor" strokeWidth="2"/>
                       <circle cx="46" cy="32" r="2" fill="black"/>
                     </svg>
                   </div>
@@ -164,7 +164,7 @@ export default function LandingPage({ onAccessServices, onAdminAccess, onGoToLeg
                       <path d="M50 10 L45 20 L35 25 L30 30 L25 40 L20 50 L25 55 L30 58 L35 60 L40 65 L45 70 L50 75 L55 70 L60 65 L65 60 L70 58 L75 55 L80 50 L75 40 L70 30 L65 25 L55 20 Z M50 25 L55 30 L60 35 L65 40 L60 42 L55 40 L50 38 L45 40 L40 42 L35 40 L40 35 L45 30 Z" fill="currentColor"/>
                       <circle cx="44" cy="35" r="2" fill="black"/>
                       <circle cx="56" cy="35" r="2" fill="black"/>
-                      <path d="M40 65 L35 70 M60 65 L65 70" stroke="currentColor" stroke-width="2" fill="none"/>
+                      <path d="M40 65 L35 70 M60 65 L65 70" stroke="currentColor" strokeWidth="2" fill="none"/>
                     </svg>
                   </div>
                   <h4 className="text-lg font-bold text-white text-center mb-1">ESRA</h4>
