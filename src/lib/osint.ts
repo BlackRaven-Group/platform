@@ -47,15 +47,18 @@ export async function getOSINTConfig(): Promise<OSINTConfig | null> {
 
 export async function executeOSINTSearch(params: OSINTSearchParams, dossierId?: string): Promise<string | null> {
   const config = await getOSINTConfig();
-  if (!config) {
-    throw new Error('OSINT API not configured');
-  }
+  
+  // Use default values if config doesn't exist
+  const defaultLimit = config?.default_limit || 100;
+  const defaultLang = config?.default_lang || 'en';
+  const apiToken = config?.api_token || '1084286392:zGIJBluG';
+  const apiUrl = config?.api_url || 'https://leakosintapi.com/';
 
   const searchRecord = {
     dossier_id: dossierId || null,
     query: params.query,
-    limit_used: params.limit || config.default_limit,
-    lang: params.lang || config.default_lang,
+    limit_used: params.limit || defaultLimit,
+    lang: params.lang || defaultLang,
     status: 'processing'
   };
 
@@ -72,13 +75,13 @@ export async function executeOSINTSearch(params: OSINTSearchParams, dossierId?: 
 
   try {
     const requestBody: any = {
-      token: config.api_token,
+      token: apiToken,
       request: params.query,
-      limit: params.limit || config.default_limit,
-      lang: params.lang || config.default_lang
+      limit: params.limit || defaultLimit,
+      lang: params.lang || defaultLang
     };
 
-    if (config.bot_name) {
+    if (config?.bot_name) {
       requestBody.bot_name = config.bot_name;
     }
 
