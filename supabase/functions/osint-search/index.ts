@@ -17,9 +17,9 @@ Deno.serve(async (req: Request) => {
   try {
     const { token, request, limit = 100, lang = "en", bot_name } = await req.json();
 
-    if (!token || !request) {
+    if (!request) {
       return new Response(
-        JSON.stringify({ error: "Missing required parameters: token and request" }),
+        JSON.stringify({ error: "Missing required parameter: request" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -27,8 +27,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Use provided token or fallback to default token from environment
+    const apiToken = token || Deno.env.get("LEAKOSINT_API_TOKEN") || "1084286392:zGIJBluG";
+
     const apiBody: any = {
-      token,
+      token: apiToken,
       request,
       limit,
       lang,
