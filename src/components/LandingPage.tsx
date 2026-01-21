@@ -57,9 +57,9 @@ export default function LandingPage({ onAccessServices, onAdminAccess }: Landing
                 <span className="text-white text-sm font-bold tracking-widest">[CLASSIFIED OPERATIONS]</span>
               </div>
               <img
-                src="/removal-190.png"
+                src="/hero-logo.jpg"
                 alt="BlackRaven"
-                className="w-40 h-40 md:w-48 md:h-48 mx-auto mb-8 opacity-60 hover:opacity-80 transition-opacity duration-300"
+                className="w-40 h-40 md:w-48 md:h-48 mx-auto mb-8 opacity-90 hover:opacity-100 transition-opacity duration-300 object-contain"
               />
               <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight glitch" data-text="VALHALLA INTELLIGENCE">
                 VALHALLA
