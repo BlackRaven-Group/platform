@@ -1,4 +1,4 @@
-import { Folder, Plus, Lock, AlertTriangle, Database, Map, Video } from 'lucide-react';
+import { Folder, Plus, Lock, AlertTriangle, Database, Map, Video, Trash2 } from 'lucide-react';
 import type { Dossier } from '../lib/supabase';
 
 interface DossierListProps {
@@ -9,9 +9,18 @@ interface DossierListProps {
   onOpenOSINT?: () => void;
   onOpenMap?: () => void;
   onOpenSurveillance?: () => void;
+  onDeleteDossier?: (id: string) => void;
 }
 
-export default function DossierList({ dossiers, loading, onViewDossier, onCreateNew, onOpenOSINT, onOpenMap, onOpenSurveillance }: DossierListProps) {
+export default function DossierList({ dossiers, loading, onViewDossier, onCreateNew, onOpenOSINT, onOpenMap, onOpenSurveillance, onDeleteDossier }: DossierListProps) {
+  const handleDeleteClick = (e: React.MouseEvent, dossierId: string) => {
+    e.stopPropagation();
+    if (window.confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce dossier définitivement ?\n\nToutes les données seront irréversiblement perdues.')) {
+      if (onDeleteDossier) {
+        onDeleteDossier(dossierId);
+      }
+    }
+  };
   return (
     <div>
       {/* Header - responsive */}
@@ -84,24 +93,38 @@ export default function DossierList({ dossiers, loading, onViewDossier, onCreate
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {dossiers.map((dossier) => (
-            <button
+            <div
               key={dossier.id}
-              onClick={() => onViewDossier(dossier.id)}
-              className="terminal-box text-left hover:border-zinc-600 transition-all group p-4 sm:p-6"
+              className="terminal-box text-left hover:border-zinc-600 transition-all group p-4 sm:p-6 relative"
             >
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <Folder className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600 group-hover:text-white" />
-                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-500" />
-              </div>
+              <button
+                onClick={() => onViewDossier(dossier.id)}
+                className="w-full text-left"
+              >
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <Folder className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600 group-hover:text-white" />
+                  <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-500" />
+                </div>
 
-              <div className="text-lg sm:text-2xl font-bold text-zinc-200 mb-1 font-mono group-hover:text-zinc-300 truncate">
-                {dossier.code_name || 'INCONNU'}
-              </div>
+                <div className="text-lg sm:text-2xl font-bold text-zinc-200 mb-1 font-mono group-hover:text-zinc-300 truncate">
+                  {dossier.code_name || 'INCONNU'}
+                </div>
 
-              <div className="text-[10px] sm:text-xs text-zinc-500 mt-3 sm:mt-4">
-                {new Date(dossier.updated_at).toLocaleDateString('fr-FR')}
-              </div>
-            </button>
+                <div className="text-[10px] sm:text-xs text-zinc-500 mt-3 sm:mt-4">
+                  {new Date(dossier.updated_at).toLocaleDateString('fr-FR')}
+                </div>
+              </button>
+
+              {onDeleteDossier && (
+                <button
+                  onClick={(e) => handleDeleteClick(e, dossier.id)}
+                  className="absolute top-2 right-2 p-1.5 text-zinc-500 hover:text-red-500 hover:bg-red-950/30 rounded transition-colors"
+                  title="Supprimer le dossier"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}

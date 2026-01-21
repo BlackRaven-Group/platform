@@ -18,6 +18,7 @@ export default function DossierAccess({ dossierId, codeName, onBack, onDeleted }
   const [attemptsLeft, setAttemptsLeft] = useState(5);
   const [unlocked, setUnlocked] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false);
 
   useEffect(() => {
     loadAttempts();
@@ -109,7 +110,9 @@ export default function DossierAccess({ dossierId, codeName, onBack, onDeleted }
       const remaining = 5 - newAttempts;
 
       if (remaining <= 0) {
-        await deleteDossierPermanently();
+        // Show warning before deletion
+        setShowDeleteWarning(true);
+        setLoading(false);
       } else {
         await supabase
           .from('dossiers')
@@ -121,6 +124,8 @@ export default function DossierAccess({ dossierId, codeName, onBack, onDeleted }
 
         setAttemptsLeft(remaining);
         setError(`INVALID CODE - ${remaining} ATTEMPT(S) REMAINING`);
+        setCode('');
+        setLoading(false);
       }
     }
 

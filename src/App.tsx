@@ -213,6 +213,61 @@ function App() {
     loadDossiers();
   };
 
+  const handleDeleteDossier = async (dossierId: string) => {
+    if (!window.confirm('⚠️ Êtes-vous ABSOLUMENT SÛR de vouloir supprimer ce dossier définitivement ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Tous les targets\n- Toutes les notes\n- Toutes les données associées\n\nTapez "SUPPRIMER" pour confirmer.')) {
+      return;
+    }
+
+    const confirmation = window.prompt('Tapez "SUPPRIMER" pour confirmer la suppression définitive :');
+    if (confirmation !== 'SUPPRIMER') {
+      return;
+    }
+
+    // Delete all related data
+    const { supabase: supabaseClient } = await import('./lib/supabase');
+    const { supabase } = supabaseClient;
+
+    // Delete intelligence notes linked to dossier
+    await supabase.from('intelligence_notes').delete().eq('dossier_id', dossierId);
+    await supabase.from('intelligence_notes').delete().eq('target_id', dossierId);
+
+    // Get all targets in this dossier
+    const { data: targets } = await supabase
+      .from('targets')
+      .select('id')
+      .eq('dossier_id', dossierId);
+
+    if (targets) {
+      for (const target of targets) {
+        // Delete all data for each target
+        await supabase.from('intelligence_notes').delete().eq('target_id', target.id);
+        await supabase.from('social_media').delete().eq('target_id', target.id);
+        await supabase.from('network_data').delete().eq('target_id', target.id);
+        await supabase.from('credentials').delete().eq('target_id', target.id);
+        await supabase.from('addresses').delete().eq('target_id', target.id);
+        await supabase.from('phone_numbers').delete().eq('target_id', target.id);
+        await supabase.from('media_files').delete().eq('target_id', target.id);
+        await supabase.from('employment').delete().eq('target_id', target.id);
+        await supabase.from('connections').delete().eq('target_id', target.id);
+      }
+      // Delete all targets
+      await supabase.from('targets').delete().eq('dossier_id', dossierId);
+    }
+
+    // Delete OSINT searches
+    await supabase.from('osint_searches').delete().eq('dossier_id', dossierId);
+
+    // Finally delete the dossier
+    const { error } = await supabase.from('dossiers').delete().eq('id', dossierId);
+
+    if (error) {
+      alert('Erreur lors de la suppression : ' + error.message);
+    } else {
+      alert('Dossier supprimé définitivement');
+      loadDossiers();
+    }
+  };
+
   const handleBackToList = () => {
     setCurrentView('list');
     setSelectedDossierId(null);
