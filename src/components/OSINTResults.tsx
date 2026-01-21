@@ -3,7 +3,7 @@ import { ArrowLeft, CheckSquare, AlertTriangle, UserPlus, FileText, Loader } fro
 import { getSearchResults, confirmSearchResults, extractTargetsFromResults, type OSINTResult, type OSINTSearchResponse, type ExtractedTarget } from '../lib/osint';
 import { supabase } from '../lib/supabase';
 import { encryptPassword } from '../lib/crypto';
-import { generateAccessCode, hashCode } from '../lib/codename';
+import { generateAccessCode, generateCodeName, hashCode } from '../lib/codename';
 
 interface OSINTResultsProps {
   searchId: string;
@@ -71,19 +71,26 @@ export default function OSINTResults({ searchId, dossierId, onBack, onDossierCre
       let newDossierAccessCode: string | null = null;
 
       if (!targetDossierId) {
-        // Generate access code for new dossier
+        // Generate access code and code name for new dossier
         const accessCode = generateAccessCode();
         const hashedAccessCode = await hashCode(accessCode);
+        const codeName = generateCodeName();
         newDossierAccessCode = accessCode;
+
+        // Get current user for user_id
+        const { data: { user } } = await supabase.auth.getUser();
 
         const { data: newDossier, error: dossierError } = await supabase
           .from('dossiers')
           .insert({
             title: `OSINT: ${search?.query || 'Investigation'}`,
             description: `Automated dossier from OSINT search query: "${search?.query}"`,
+            code_name: codeName,
             classification: 'confidential',
             status: 'active',
-            access_code: hashedAccessCode
+            access_code: hashedAccessCode,
+            user_id: user?.id || null,
+            created_by: user?.id || null
           })
           .select()
           .single();
