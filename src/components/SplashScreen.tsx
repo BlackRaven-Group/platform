@@ -24,6 +24,19 @@ export default function SplashScreen({
   useEffect(() => {
     console.log('🎵 Initializing audio:', soundUrl);
     
+    // Vérifier d'abord que le fichier existe
+    fetch(soundUrl, { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) {
+          console.log('✅ Audio file exists and is accessible');
+        } else {
+          console.error('❌ Audio file not found:', response.status, response.statusText);
+        }
+      })
+      .catch(err => {
+        console.error('❌ Error checking audio file:', err);
+      });
+    
     // Créer l'élément audio pour le son du corbeau
     audioRef.current = new Audio(soundUrl);
     audioRef.current.volume = 1.0; // Volume à 100% pour être sûr
@@ -34,8 +47,21 @@ export default function SplashScreen({
       console.log('✅ Audio file loaded and ready to play');
     });
     
+    audioRef.current.addEventListener('loadeddata', () => {
+      console.log('✅ Audio data loaded');
+    });
+    
     audioRef.current.addEventListener('error', (e) => {
       console.error('❌ Audio loading error:', e);
+      console.error('   Error details:', audioRef.current?.error);
+    });
+    
+    audioRef.current.addEventListener('play', () => {
+      console.log('▶️▶️▶️ Audio is now playing!');
+    });
+    
+    audioRef.current.addEventListener('pause', () => {
+      console.log('⏸️ Audio paused');
     });
     
     // Fonction pour jouer l'audio
