@@ -19,158 +19,74 @@ export default function SplashScreen({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasPlayedRef = useRef(false);
   const interactionRef = useRef(false);
+  const autoClickButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Préparer l'audio et débloquer l'autoplay avec une interaction réelle
   useEffect(() => {
     console.log('🎵 Initializing audio:', soundUrl);
     
-    // Vérifier d'abord que le fichier existe
-    fetch(soundUrl, { method: 'HEAD' })
-      .then(response => {
-        if (response.ok) {
-          console.log('✅ Audio file exists and is accessible');
-        } else {
-          console.error('❌ Audio file not found:', response.status, response.statusText);
-        }
-      })
-      .catch(err => {
-        console.error('❌ Error checking audio file:', err);
-      });
-    
     // Créer l'élément audio pour le son du corbeau
     audioRef.current = new Audio(soundUrl);
-    audioRef.current.volume = 1.0; // Volume à 100% pour être sûr
+    audioRef.current.volume = 1.0; // Volume à 100%
     audioRef.current.preload = 'auto';
-    
-    // Vérifier que le fichier audio peut être chargé
-    audioRef.current.addEventListener('canplaythrough', () => {
-      console.log('✅ Audio file loaded and ready to play');
-    });
-    
-    audioRef.current.addEventListener('loadeddata', () => {
-      console.log('✅ Audio data loaded');
-    });
-    
-    audioRef.current.addEventListener('error', (e) => {
-      console.error('❌ Audio loading error:', e);
-      console.error('   Error details:', audioRef.current?.error);
-    });
-    
-    audioRef.current.addEventListener('play', () => {
-      console.log('▶️▶️▶️ Audio is now playing!');
-    });
-    
-    audioRef.current.addEventListener('pause', () => {
-      console.log('⏸️ Audio paused');
-    });
     
     // Fonction pour jouer l'audio
     const playAudio = async () => {
-      if (!audioRef.current) {
-        console.warn('⚠️ Audio ref is null');
+      if (!audioRef.current || hasPlayedRef.current) {
         return;
       }
-      
-      if (hasPlayedRef.current) {
-        console.log('ℹ️ Audio already played');
-        return;
-      }
-      
-      console.log('▶️ Attempting to play audio...');
-      console.log('   - Audio readyState:', audioRef.current.readyState);
-      console.log('   - Audio src:', audioRef.current.src);
-      console.log('   - Audio volume:', audioRef.current.volume);
       
       try {
-        const playPromise = audioRef.current.play();
-        
-        if (playPromise !== undefined) {
-          await playPromise;
-          hasPlayedRef.current = true;
-          interactionRef.current = true;
-          setAudioReady(true);
-          console.log('✅✅✅ Audio played successfully!');
-        }
+        await audioRef.current.play();
+        hasPlayedRef.current = true;
+        interactionRef.current = true;
+        setAudioReady(true);
+        console.log('✅✅✅ Audio played successfully!');
       } catch (error: any) {
-        console.error('❌ Audio play failed:', error.name, error.message);
-        interactionRef.current = false;
+        console.warn('⚠️ Audio play failed:', error.name);
       }
     };
 
-    // Attendre que l'audio soit prêt avant d'essayer de jouer
+    // Attendre que l'audio soit prêt
     const tryPlayWhenReady = () => {
       if (audioRef.current) {
-        if (audioRef.current.readyState >= 2) { // HAVE_CURRENT_DATA
-          console.log('🎵 Audio is ready, attempting play...');
+        if (audioRef.current.readyState >= 2) {
           playAudio();
         } else {
-          console.log('⏳ Waiting for audio to load...');
-          audioRef.current.addEventListener('canplay', () => {
-            console.log('🎵 Audio can play now');
-            playAudio();
-          }, { once: true });
+          audioRef.current.addEventListener('canplay', playAudio, { once: true });
         }
       }
     };
     
-    // Essayer de jouer après un court délai pour laisser le temps au navigateur
-    setTimeout(tryPlayWhenReady, 100);
-    
-    // Écouter TOUS les types d'interactions pour débloquer l'audio
-    const handleInteraction = (eventType: string) => {
-      console.log(`👆 User interaction detected: ${eventType}`);
+    // Écouter les interactions utilisateur
+    const handleInteraction = () => {
       if (!hasPlayedRef.current && audioRef.current) {
         playAudio();
       }
     };
 
-    // Écouter plusieurs événements pour maximiser les chances de déblocage
-    const events = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown', 'mousemove', 'pointerdown', 'pointerup'];
+    // Écouter plusieurs événements
+    const events = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown', 'mousemove', 'pointerdown'];
     events.forEach(event => {
-      document.addEventListener(event, () => handleInteraction(event), { once: true, passive: true });
+      document.addEventListener(event, handleInteraction, { once: true, passive: true });
     });
 
-    // Créer un bouton visible mais discret qui se déclenche automatiquement
-    const createAutoClickButton = () => {
-      const button = document.createElement('button');
-      button.innerHTML = '🔊';
-      button.style.cssText = 'position:fixed;top:10px;right:10px;width:40px;height:40px;opacity:0.01;z-index:99999;cursor:pointer;background:transparent;border:none;';
-      button.setAttribute('aria-label', 'Play audio');
-      button.setAttribute('title', 'Play audio');
-      document.body.appendChild(button);
-      
-      console.log('🔘 Creating auto-click button...');
-      
-      // Déclencher plusieurs fois avec des délais différents
-      const clickAttempts = [50, 150, 300, 500];
-      clickAttempts.forEach((delay, index) => {
-        setTimeout(() => {
-          console.log(`🖱️ Auto-click attempt ${index + 1}...`);
-          button.click();
-          // Aussi essayer de jouer directement après le click
-          setTimeout(() => {
-            if (audioRef.current && !hasPlayedRef.current) {
-              playAudio();
-            }
-          }, 10);
-        }, delay);
-      });
-      
-      // Nettoyer après
-      setTimeout(() => {
-        if (document.body.contains(button)) {
-          document.body.removeChild(button);
-          console.log('🧹 Auto-click button removed');
+    // Utiliser requestAnimationFrame pour déclencher après le premier frame (considéré comme interaction)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (audioRef.current && !hasPlayedRef.current) {
+          console.log('🎬 Using requestAnimationFrame to trigger audio...');
+          playAudio();
         }
-      }, 1000);
-    };
+      });
+    });
 
-    // Essayer de créer un auto-click après un court délai
-    setTimeout(createAutoClickButton, 200);
+    // Essayer de jouer après un court délai
+    setTimeout(tryPlayWhenReady, 50);
 
     return () => {
       events.forEach(event => {
-        document.removeEventListener(event, () => handleInteraction(event));
+        document.removeEventListener(event, handleInteraction);
       });
       if (audioRef.current) {
         audioRef.current.pause();
@@ -234,38 +150,35 @@ export default function SplashScreen({
   // Référence pour le conteneur du splash screen
   const splashRef = useRef<HTMLDivElement>(null);
 
-  // Déclencher automatiquement un clic sur le splash screen au chargement
+  // Déclencher automatiquement l'audio dès que le composant est monté
   useEffect(() => {
-    if (splashRef.current && !hasPlayedRef.current) {
-      // Attendre un court délai pour que tout soit prêt
-      const triggerClick = () => {
-        if (splashRef.current && !hasPlayedRef.current) {
-          console.log('🖱️ Auto-clicking splash screen to unlock audio...');
-          // Créer un événement de clic synthétique
-          const clickEvent = new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-          });
-          splashRef.current.dispatchEvent(clickEvent);
-          
-          // Aussi essayer directement de jouer l'audio
-          if (audioRef.current) {
+    // Créer un bouton réellement interactif qui se déclenche automatiquement
+    const triggerAudio = () => {
+      if (autoClickButtonRef.current && audioRef.current && !hasPlayedRef.current) {
+        console.log('🖱️ Auto-clicking button to unlock audio...');
+        // Utiliser un vrai événement de clic sur un vrai bouton
+        autoClickButtonRef.current.focus();
+        autoClickButtonRef.current.click();
+        
+        // Aussi essayer directement
+        setTimeout(() => {
+          if (audioRef.current && !hasPlayedRef.current) {
             audioRef.current.play().then(() => {
               hasPlayedRef.current = true;
-              console.log('✅ Audio played via auto-click');
+              console.log('✅ Audio played via auto-click button');
             }).catch(err => {
               console.warn('⚠️ Auto-click play failed:', err);
             });
           }
-        }
-      };
-      
-      // Essayer plusieurs fois avec des délais différents
-      setTimeout(triggerClick, 100);
-      setTimeout(triggerClick, 300);
-      setTimeout(triggerClick, 500);
-    }
+        }, 10);
+      }
+    };
+    
+    // Essayer plusieurs fois avec des délais différents
+    const attempts = [100, 200, 300, 400, 500, 700, 1000];
+    attempts.forEach(delay => {
+      setTimeout(triggerAudio, delay);
+    });
   }, [show]);
 
   if (!show) return null;
@@ -278,30 +191,54 @@ export default function SplashScreen({
       }`}
       style={{ pointerEvents: fadeOut ? 'none' : 'auto' }}
       onClick={() => {
-        // Quand l'utilisateur clique (ou que le clic est déclenché automatiquement)
         if (audioRef.current && !hasPlayedRef.current) {
-          console.log('👆 Splash screen clicked, playing audio...');
           audioRef.current.play().then(() => {
             hasPlayedRef.current = true;
-            console.log('✅ Audio played via click');
-          }).catch(err => {
-            console.warn('⚠️ Click play failed:', err);
-          });
+          }).catch(() => {});
         }
       }}
       onTouchStart={() => {
-        // Pour les appareils tactiles
         if (audioRef.current && !hasPlayedRef.current) {
-          console.log('👆 Touch detected, playing audio...');
           audioRef.current.play().then(() => {
             hasPlayedRef.current = true;
-            console.log('✅ Audio played via touch');
-          }).catch(err => {
-            console.warn('⚠️ Touch play failed:', err);
-          });
+          }).catch(() => {});
+        }
+      }}
+      onMouseMove={() => {
+        // Le mouvement de la souris est considéré comme une interaction valide
+        if (audioRef.current && !hasPlayedRef.current) {
+          audioRef.current.play().then(() => {
+            hasPlayedRef.current = true;
+          }).catch(() => {});
         }
       }}
     >
+      {/* Bouton invisible mais réellement interactif pour débloquer l'audio */}
+      <button
+        ref={autoClickButtonRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          opacity: 0,
+          cursor: 'default',
+          border: 'none',
+          background: 'transparent',
+          zIndex: 1
+        }}
+        aria-hidden="true"
+        onClick={(e) => {
+          e.preventDefault();
+          if (audioRef.current && !hasPlayedRef.current) {
+            audioRef.current.play().then(() => {
+              hasPlayedRef.current = true;
+              console.log('✅ Audio played via invisible button click');
+            }).catch(() => {});
+          }
+        }}
+      />
       <img
         ref={imgRef}
         src={gifUrl}
@@ -309,19 +246,18 @@ export default function SplashScreen({
         className="w-full h-full object-cover"
         style={{ 
           imageRendering: 'auto',
-          objectFit: 'cover'
+          objectFit: 'cover',
+          zIndex: 0
         }}
         onLoad={() => {
-          // Empêcher le GIF de se rejouer en forçant un seul cycle
           if (imgRef.current) {
             imgRef.current.style.animationIterationCount = '1';
           }
-          // Déclencher l'audio dès que l'image est chargée
-          if (audioRef.current && !hasPlayedRef.current && splashRef.current) {
-            console.log('🖼️ Image loaded, triggering audio...');
+          // Déclencher l'audio quand l'image est chargée
+          if (audioRef.current && !hasPlayedRef.current && autoClickButtonRef.current) {
             setTimeout(() => {
-              if (splashRef.current) {
-                splashRef.current.click();
+              if (autoClickButtonRef.current) {
+                autoClickButtonRef.current.click();
               }
             }, 50);
           }
