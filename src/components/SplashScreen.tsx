@@ -231,14 +231,76 @@ export default function SplashScreen({
     };
   }, [onComplete]);
 
+  // Référence pour le conteneur du splash screen
+  const splashRef = useRef<HTMLDivElement>(null);
+
+  // Déclencher automatiquement un clic sur le splash screen au chargement
+  useEffect(() => {
+    if (splashRef.current && !hasPlayedRef.current) {
+      // Attendre un court délai pour que tout soit prêt
+      const triggerClick = () => {
+        if (splashRef.current && !hasPlayedRef.current) {
+          console.log('🖱️ Auto-clicking splash screen to unlock audio...');
+          // Créer un événement de clic synthétique
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          });
+          splashRef.current.dispatchEvent(clickEvent);
+          
+          // Aussi essayer directement de jouer l'audio
+          if (audioRef.current) {
+            audioRef.current.play().then(() => {
+              hasPlayedRef.current = true;
+              console.log('✅ Audio played via auto-click');
+            }).catch(err => {
+              console.warn('⚠️ Auto-click play failed:', err);
+            });
+          }
+        }
+      };
+      
+      // Essayer plusieurs fois avec des délais différents
+      setTimeout(triggerClick, 100);
+      setTimeout(triggerClick, 300);
+      setTimeout(triggerClick, 500);
+    }
+  }, [show]);
+
   if (!show) return null;
 
   return (
     <div
+      ref={splashRef}
       className={`fixed inset-0 z-[9999] bg-black flex items-center justify-center transition-opacity duration-300 ${
         fadeOut ? 'opacity-0' : 'opacity-100'
       }`}
       style={{ pointerEvents: fadeOut ? 'none' : 'auto' }}
+      onClick={() => {
+        // Quand l'utilisateur clique (ou que le clic est déclenché automatiquement)
+        if (audioRef.current && !hasPlayedRef.current) {
+          console.log('👆 Splash screen clicked, playing audio...');
+          audioRef.current.play().then(() => {
+            hasPlayedRef.current = true;
+            console.log('✅ Audio played via click');
+          }).catch(err => {
+            console.warn('⚠️ Click play failed:', err);
+          });
+        }
+      }}
+      onTouchStart={() => {
+        // Pour les appareils tactiles
+        if (audioRef.current && !hasPlayedRef.current) {
+          console.log('👆 Touch detected, playing audio...');
+          audioRef.current.play().then(() => {
+            hasPlayedRef.current = true;
+            console.log('✅ Audio played via touch');
+          }).catch(err => {
+            console.warn('⚠️ Touch play failed:', err);
+          });
+        }
+      }}
     >
       <img
         ref={imgRef}
@@ -253,6 +315,15 @@ export default function SplashScreen({
           // Empêcher le GIF de se rejouer en forçant un seul cycle
           if (imgRef.current) {
             imgRef.current.style.animationIterationCount = '1';
+          }
+          // Déclencher l'audio dès que l'image est chargée
+          if (audioRef.current && !hasPlayedRef.current && splashRef.current) {
+            console.log('🖼️ Image loaded, triggering audio...');
+            setTimeout(() => {
+              if (splashRef.current) {
+                splashRef.current.click();
+              }
+            }, 50);
           }
         }}
       />
