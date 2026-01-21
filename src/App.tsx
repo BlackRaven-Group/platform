@@ -16,7 +16,7 @@ import GLPITicketing from './components/GLPITicketing';
 import SupportDashboard from './components/SupportDashboard';
 import AdminPanel from './components/AdminPanel';
 import ClientTicketsDashboard from './components/ClientTicketsDashboard';
-import { LogOut, Shield, FileText, Users, Menu, X } from 'lucide-react';
+import { LogOut, Shield, FileText, Users, Menu, X, Key } from 'lucide-react';
 
 type ViewType = 'landing' | 'clientAuth' | 'services' | 'commChoice' | 'pgp' | 'glpi' | 'clientTickets' | 'adminLogin' | 'support' | 'list' | 'create' | 'view' | 'osint' | 'map' | 'surveillance' | 'adminPanel';
 type UserType = 'none' | 'client' | 'admin';
