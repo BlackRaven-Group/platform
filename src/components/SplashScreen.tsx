@@ -27,52 +27,57 @@ export default function SplashScreen({
     audioRef.current.volume = 0.9; // Volume à 90%
     audioRef.current.preload = 'auto';
     
-    // Fonction pour débloquer l'autoplay avec une vraie interaction utilisateur
-    const unlockAudio = () => {
-      if (audioRef.current && !interactionRef.current) {
-        // Créer un contexte audio et le débloquer avec une interaction
-        const playPromise = audioRef.current.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              // Autoplay réussi
-              hasPlayedRef.current = true;
-              interactionRef.current = true;
-              setAudioReady(true);
-              console.log('Audio autoplay successful');
-            })
-            .catch((error) => {
-              // Autoplay bloqué - on attendra une vraie interaction
-              console.warn('Autoplay blocked, waiting for user interaction:', error);
-              interactionRef.current = false;
-            });
+    // Fonction pour jouer l'audio
+    const playAudio = async () => {
+      if (audioRef.current && !hasPlayedRef.current) {
+        try {
+          await audioRef.current.play();
+          hasPlayedRef.current = true;
+          interactionRef.current = true;
+          setAudioReady(true);
+          console.log('✅ Audio played successfully');
+        } catch (error: any) {
+          console.warn('⚠️ Autoplay blocked:', error.name);
+          interactionRef.current = false;
         }
       }
     };
 
-    // Essayer de débloquer immédiatement
-    unlockAudio();
+    // Essayer de jouer immédiatement
+    playAudio();
     
     // Écouter TOUS les types d'interactions pour débloquer l'audio
     const handleInteraction = () => {
-      if (!interactionRef.current && audioRef.current && !hasPlayedRef.current) {
-        audioRef.current.play()
-          .then(() => {
-            hasPlayedRef.current = true;
-            interactionRef.current = true;
-            setAudioReady(true);
-            console.log('Audio played on user interaction');
-          })
-          .catch(e => console.warn('Audio play failed:', e));
+      if (!hasPlayedRef.current && audioRef.current) {
+        playAudio();
       }
     };
 
-    // Écouter plusieurs événements pour maximiser les chances
-    const events = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown', 'mousemove', 'pointerdown'];
+    // Écouter plusieurs événements pour maximiser les chances de déblocage
+    const events = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown', 'mousemove', 'pointerdown', 'pointerup'];
     events.forEach(event => {
       document.addEventListener(event, handleInteraction, { once: true, passive: true });
     });
+
+    // Créer un bouton invisible qui se déclenche automatiquement pour forcer l'interaction
+    const createAutoClickButton = () => {
+      const button = document.createElement('button');
+      button.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;';
+      button.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(button);
+      
+      // Déclencher plusieurs fois pour maximiser les chances
+      setTimeout(() => button.click(), 50);
+      setTimeout(() => button.click(), 100);
+      setTimeout(() => {
+        if (document.body.contains(button)) {
+          document.body.removeChild(button);
+        }
+      }, 200);
+    };
+
+    // Essayer de créer un auto-click après un court délai
+    setTimeout(createAutoClickButton, 100);
 
     return () => {
       events.forEach(event => {
