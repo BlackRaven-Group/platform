@@ -119,16 +119,17 @@ export default function OSINTResults({ searchId, dossierId, onBack }: OSINTResul
             target_id: newTarget.id,
             service: 'Email',
             email: target.email,
-            password: target.password ? await encryptPassword(target.password) : null,
+            password_encrypted: target.password ? await encryptPassword(target.password) : null,
             status: 'active'
           });
         }
 
         if (target.phone) {
-          await supabase.from('network_data').insert({
+          // Store phone in phone_numbers table instead of network_data
+          await supabase.from('phone_numbers').insert({
             target_id: newTarget.id,
-            data_type: 'phone',
-            value: target.phone,
+            phone_number: target.phone,
+            number_type: 'mobile',
             verified: false
           });
         }
@@ -136,8 +137,8 @@ export default function OSINTResults({ searchId, dossierId, onBack }: OSINTResul
         if (target.ip) {
           await supabase.from('network_data').insert({
             target_id: newTarget.id,
-            data_type: 'ip',
-            value: target.ip,
+            ip_address: target.ip,
+            ip_type: /:/.test(target.ip) ? 'ipv6' : 'ipv4',
             verified: false
           });
         }
@@ -146,7 +147,7 @@ export default function OSINTResults({ searchId, dossierId, onBack }: OSINTResul
           const addressParts = target.address.split(',').map(p => p.trim());
           await supabase.from('addresses').insert({
             target_id: newTarget.id,
-            address_type: 'residence',
+            address_type: 'other',
             street_address: addressParts[0] || target.address,
             city: addressParts[1] || null,
             verified: false
@@ -173,9 +174,11 @@ export default function OSINTResults({ searchId, dossierId, onBack }: OSINTResul
         if (noteContent) {
           await supabase.from('intelligence_notes').insert({
             target_id: newTarget.id,
-            category: 'investigation',
+            dossier_id: targetDossierId,
+            category: 'osint',
             priority: 'medium',
-            content: noteContent
+            content: noteContent,
+            source: 'OSINT Search'
           });
         }
       }
