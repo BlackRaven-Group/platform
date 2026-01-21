@@ -357,6 +357,10 @@ function App() {
     setCurrentView('adminLogin');
   };
 
+  const handleGoToLegal = () => {
+    setCurrentView('legal');
+  };
+
   const handleAdminPanel = () => {
     setCurrentView('adminPanel');
   };
