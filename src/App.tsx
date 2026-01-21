@@ -16,24 +16,7 @@ import GLPITicketing from './components/GLPITicketing';
 import SupportDashboard from './components/SupportDashboard';
 import AdminPanel from './components/AdminPanel';
 import ClientTicketsDashboard from './components/ClientTicketsDashboard';
-import PublicLanding from './components/PublicLanding';
 import { LogOut, Shield, FileText, Users, Menu, X } from 'lucide-react';
-
-// Type de site basé sur le domaine
-type SiteMode = 'vitrine' | 'operational' | 'local';
-
-// Détecte le mode du site basé sur l'URL
-function getSiteMode(): SiteMode {
-  const hostname = window.location.hostname;
-  
-  // blackraven.fr → Site vitrine public
-  if (hostname.includes('blackraven')) {
-    return 'vitrine';
-  }
-  
-  // Localhost / dev → Par défaut opérationnel pour les tests
-  return 'operational';
-}
 
 type ViewType = 'landing' | 'clientAuth' | 'services' | 'commChoice' | 'pgp' | 'glpi' | 'clientTickets' | 'adminLogin' | 'support' | 'list' | 'create' | 'view' | 'osint' | 'map' | 'surveillance' | 'adminPanel';
 type UserType = 'none' | 'client' | 'admin';
@@ -46,7 +29,6 @@ interface UserPermissions {
 }
 
 function App() {
-  const [siteMode] = useState<SiteMode>(getSiteMode());
   const [authenticated, setAuthenticated] = useState(false);
   const [userType, setUserType] = useState<UserType>('none');
   const [clientUser, setClientUser] = useState<any>(null);
@@ -66,15 +48,9 @@ function App() {
   });
 
   useEffect(() => {
-    // En mode vitrine, pas besoin de vérifier les sessions
-    if (siteMode === 'vitrine') {
-      setSessionLoading(false);
-      return;
-    }
-    
-    // En mode opérationnel, vérifier les sessions
+    // Vérifier les sessions
     checkSessions();
-  }, [siteMode]);
+  }, []);
 
   useEffect(() => {
     if (authenticated && userType === 'admin') {
@@ -310,17 +286,6 @@ function App() {
   };
 
 
-  // ========================================
-  // MODE VITRINE - blackraven.fr (site public)
-  // ========================================
-  if (siteMode === 'vitrine') {
-    return <PublicLanding />;
-  }
-
-  // ========================================
-  // MODE OPÉRATIONNEL
-  // ========================================
-  
   // Écran de chargement
   if (sessionLoading) {
     return (
