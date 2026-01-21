@@ -19,9 +19,10 @@ import GLPITicketing from './components/GLPITicketing';
 import SupportDashboard from './components/SupportDashboard';
 import AdminPanel from './components/AdminPanel';
 import ClientTicketsDashboard from './components/ClientTicketsDashboard';
+import LegalPage from './components/LegalPage';
 import { LogOut, Shield, FileText, Users, Menu, X, Key } from 'lucide-react';
 
-type ViewType = 'landing' | 'clientAuth' | 'services' | 'commChoice' | 'pgp' | 'glpi' | 'clientTickets' | 'adminLogin' | 'support' | 'list' | 'create' | 'view' | 'osint' | 'map' | 'surveillance' | 'adminPanel';
+type ViewType = 'landing' | 'clientAuth' | 'services' | 'commChoice' | 'pgp' | 'glpi' | 'clientTickets' | 'adminLogin' | 'support' | 'list' | 'create' | 'view' | 'osint' | 'map' | 'surveillance' | 'adminPanel' | 'legal';
 type UserType = 'none' | 'client' | 'admin';
 
 interface UserPermissions {
@@ -946,13 +947,24 @@ function App() {
               onDossierCreated={handleOSINTDossierCreated}
             />
           )}
+
+          {currentView === 'legal' && (
+            <LegalPage onBack={() => setCurrentView('landing')} />
+          )}
         </main>
       )}
 
       <footer className="border-t-2 border-green-900 bg-black/90 backdrop-blur mt-8 sm:mt-12">
         <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex justify-center items-center text-[10px] sm:text-xs text-zinc-500">
-            BLACKRAVEN - Plateforme de Renseignement
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-zinc-500">
+            <span>BLACKRAVEN - Plateforme de Renseignement</span>
+            <span className="hidden sm:inline">|</span>
+            <button
+              onClick={() => setCurrentView('legal')}
+              className="hover:text-zinc-300 transition-colors underline"
+            >
+              Mentions Légales & RGPD
+            </button>
           </div>
         </div>
       </footer>
