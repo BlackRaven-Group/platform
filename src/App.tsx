@@ -20,6 +20,7 @@ import SupportDashboard from './components/SupportDashboard';
 import AdminPanel from './components/AdminPanel';
 import ClientTicketsDashboard from './components/ClientTicketsDashboard';
 import LegalPage from './components/LegalPage';
+import SplashScreen from './components/SplashScreen';
 import { LogOut, Shield, FileText, Users, Menu, X, Key } from 'lucide-react';
 
 type ViewType = 'landing' | 'clientAuth' | 'services' | 'commChoice' | 'pgp' | 'glpi' | 'clientTickets' | 'adminLogin' | 'support' | 'list' | 'create' | 'view' | 'osint' | 'map' | 'surveillance' | 'adminPanel' | 'legal';
@@ -33,6 +34,7 @@ interface UserPermissions {
 }
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [userType, setUserType] = useState<UserType>('none');
   const [clientUser, setClientUser] = useState<any>(null);
@@ -377,6 +379,11 @@ function App() {
     setCurrentView('support');
   };
 
+
+  // Splash screen avec GIF
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   // Écran de chargement
   if (sessionLoading) {
