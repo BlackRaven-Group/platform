@@ -36,6 +36,7 @@ Thumbs.db
 
 # Sensitive data
 *.csv
+!public/data/*.csv
 src/data/
 
 # Test/Debug files (backup)
@@ -46,7 +47,3 @@ setup-*.html
 
 # Supabase local
 .supabase/
-
-# Tool configs
-.bolt/
-.cursor/
