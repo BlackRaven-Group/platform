@@ -175,7 +175,15 @@ function App() {
     const { data, error } = await query;
 
     if (!error && data) {
-      setDossiers(data);
+      // Sort by updated_at descending (most recent first)
+      const sorted = [...data].sort((a, b) => {
+        const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+        const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+      setDossiers(sorted);
+    } else if (error) {
+      addNotification('error', 'Erreur lors du chargement des dossiers', 'Erreur');
     }
     setLoading(false);
   };
