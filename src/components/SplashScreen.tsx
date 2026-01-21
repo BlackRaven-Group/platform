@@ -13,90 +13,91 @@ export default function SplashScreen({
 }: SplashScreenProps) {
   const [fadeOut, setFadeOut] = useState(false);
   const [show, setShow] = useState(true);
+  const [audioReady, setAudioReady] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasPlayedRef = useRef(false);
+  const interactionRef = useRef(false);
 
+  // Préparer l'audio et débloquer l'autoplay avec une interaction réelle
   useEffect(() => {
     // Créer l'élément audio pour le son du corbeau
     audioRef.current = new Audio(soundUrl);
-    audioRef.current.volume = 0.8; // Volume à 80%
+    audioRef.current.volume = 0.9; // Volume à 90%
     audioRef.current.preload = 'auto';
     
-    // Stratégie pour forcer l'autoplay : créer une interaction programmatique
-    // en simulant un clic sur un bouton invisible au chargement
-    const enableAutoplay = () => {
-      // Créer un bouton invisible qui se déclenche automatiquement
-      const button = document.createElement('button');
-      button.style.position = 'fixed';
-      button.style.opacity = '0';
-      button.style.pointerEvents = 'none';
-      button.style.width = '1px';
-      button.style.height = '1px';
-      document.body.appendChild(button);
-      
-      // Simuler un clic pour débloquer l'autoplay
-      button.click();
-      
-      // Nettoyer après un court délai
-      setTimeout(() => {
-        document.body.removeChild(button);
-      }, 100);
-    };
-    
-    // Activer l'autoplay dès le chargement
-    enableAutoplay();
-    
-    // Les navigateurs modernes bloquent l'autoplay audio sans interaction utilisateur
-    // On va essayer de jouer le son, et si ça échoue, on le jouera au premier clic/interaction
-    const playAudio = async () => {
-      if (audioRef.current && !hasPlayedRef.current) {
-        try {
-          // Essayer de jouer immédiatement
-          await audioRef.current.play();
-          hasPlayedRef.current = true;
-          console.log('Audio played successfully');
-        } catch (err: any) {
-          console.warn('Autoplay blocked, will play on user interaction:', err);
-          // Si l'autoplay est bloqué, on écoute le premier clic/touch
-          const playOnInteraction = () => {
-            if (audioRef.current && !hasPlayedRef.current) {
-              audioRef.current.play().catch(e => console.warn('Audio play failed:', e));
+    // Fonction pour débloquer l'autoplay avec une vraie interaction utilisateur
+    const unlockAudio = () => {
+      if (audioRef.current && !interactionRef.current) {
+        // Créer un contexte audio et le débloquer avec une interaction
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              // Autoplay réussi
               hasPlayedRef.current = true;
-            }
-            document.removeEventListener('click', playOnInteraction);
-            document.removeEventListener('touchstart', playOnInteraction);
-            document.removeEventListener('keydown', playOnInteraction);
-            document.removeEventListener('mousemove', playOnInteraction);
-          };
-          // Écouter plusieurs types d'interactions pour maximiser les chances
-          document.addEventListener('click', playOnInteraction, { once: true });
-          document.addEventListener('touchstart', playOnInteraction, { once: true });
-          document.addEventListener('keydown', playOnInteraction, { once: true });
-          document.addEventListener('mousemove', playOnInteraction, { once: true });
+              interactionRef.current = true;
+              setAudioReady(true);
+              console.log('Audio autoplay successful');
+            })
+            .catch((error) => {
+              // Autoplay bloqué - on attendra une vraie interaction
+              console.warn('Autoplay blocked, waiting for user interaction:', error);
+              interactionRef.current = false;
+            });
         }
       }
     };
+
+    // Essayer de débloquer immédiatement
+    unlockAudio();
+    
+    // Écouter TOUS les types d'interactions pour débloquer l'audio
+    const handleInteraction = () => {
+      if (!interactionRef.current && audioRef.current && !hasPlayedRef.current) {
+        audioRef.current.play()
+          .then(() => {
+            hasPlayedRef.current = true;
+            interactionRef.current = true;
+            setAudioReady(true);
+            console.log('Audio played on user interaction');
+          })
+          .catch(e => console.warn('Audio play failed:', e));
+      }
+    };
+
+    // Écouter plusieurs événements pour maximiser les chances
+    const events = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown', 'mousemove', 'pointerdown'];
+    events.forEach(event => {
+      document.addEventListener(event, handleInteraction, { once: true, passive: true });
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleInteraction);
+      });
+    };
+  }, [soundUrl]);
 
     // Durée exacte du GIF (environ 2.5 secondes d'après l'observation)
     // Ajustez cette valeur si nécessaire pour correspondre exactement à la durée du GIF
     const gifDuration = 2500; // 2.5 secondes en millisecondes
     
     const startSplash = () => {
-      // Essayer de jouer le son du corbeau au début
-      playAudio();
-
       // Démarrer le fade out juste avant la fin du GIF pour une transition fluide
       timeoutRef.current = setTimeout(() => {
         // Commencer le fade out
         setFadeOut(true);
         
-        // Arrêter le son si il est encore en cours
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
+        // Laisser le son continuer pendant le fade, puis l'arrêter
+        setTimeout(() => {
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+          }
+        }, 200);
         
         // Après l'animation de fade, masquer complètement
         setTimeout(() => {

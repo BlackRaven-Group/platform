@@ -59,7 +59,8 @@ export default function LandingPage({ onAccessServices, onAdminAccess }: Landing
               <img
                 src="/hero-logo.png"
                 alt="BlackRaven"
-                className="w-40 h-40 md:w-48 md:h-48 mx-auto mb-8 opacity-90 hover:opacity-100 transition-opacity duration-300 object-contain"
+                className="w-96 h-96 md:w-[600px] md:h-[600px] mx-auto mb-8 opacity-40 hover:opacity-50 transition-opacity duration-300 object-contain absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -z-10"
+                style={{ marginTop: '-2rem' }}
               />
               <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight glitch" data-text="VALHALLA INTELLIGENCE">
                 VALHALLA
