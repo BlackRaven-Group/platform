@@ -2,9 +2,9 @@
 
 > Plateforme sécurisée d'intelligence et d'investigation OSINT.
 
-## 🚀 Déploiement
+## 📚 Documentation
 
-Voir [DEPLOYMENT_NETLIFY.md](./DEPLOYMENT_NETLIFY.md) pour les instructions de déploiement.
+Voir [DOCUMENTATION.md](./DOCUMENTATION.md) pour la documentation complète du système (tables, processus, fonctionnalités).
 
 ## 🛠️ Technologies
 
