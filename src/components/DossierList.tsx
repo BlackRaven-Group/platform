@@ -15,10 +15,8 @@ interface DossierListProps {
 export default function DossierList({ dossiers, loading, onViewDossier, onCreateNew, onOpenOSINT, onOpenMap, onOpenSurveillance, onDeleteDossier }: DossierListProps) {
   const handleDeleteClick = (e: React.MouseEvent, dossierId: string) => {
     e.stopPropagation();
-    if (window.confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce dossier définitivement ?\n\nToutes les données seront irréversiblement perdues.')) {
-      if (onDeleteDossier) {
-        onDeleteDossier(dossierId);
-      }
+    if (onDeleteDossier) {
+      onDeleteDossier(dossierId);
     }
   };
   return (

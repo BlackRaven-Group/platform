@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase, type Dossier } from './lib/supabase';
+import { useNotifications } from './components/Notification';
+import ConfirmModal from './components/ConfirmModal';
+import PromptModal from './components/PromptModal';
 import DossierList from './components/DossierList';
 import DossierAccess from './components/DossierAccess';
 import CreateDossier from './components/CreateDossier';
@@ -41,6 +44,10 @@ function App() {
   const [userRole, setUserRole] = useState<string>('client');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [newDossierAccessCode, setNewDossierAccessCode] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeletePrompt, setShowDeletePrompt] = useState(false);
+  const [dossierToDelete, setDossierToDelete] = useState<string | null>(null);
+  const { addNotification, NotificationContainer } = useNotifications();
   const [userPermissions, setUserPermissions] = useState<UserPermissions>({
     manage_dossiers: false,
     manage_tickets: false,
@@ -102,7 +109,7 @@ function App() {
         return;
       }
 
-      console.log('Checking role for user:', user.email, user.id);
+      // Checking role for user
 
       const { data, error } = await supabase
         .from('admin_roles')
@@ -110,12 +117,12 @@ function App() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('Admin role query result:', { data, error });
+      // Admin role query result
 
       if (!error && data) {
         const roleName = data.role || 'client';
         const permissions = data.permissions || {};
-        console.log('Setting role to:', roleName, 'with permissions:', permissions);
+        // Setting role with permissions
         setUserRole(roleName);
         setUserPermissions({
           manage_dossiers: permissions.manage_dossiers || false,
@@ -213,15 +220,22 @@ function App() {
     loadDossiers();
   };
 
-  const handleDeleteDossier = async (dossierId: string) => {
-    if (!window.confirm('⚠️ Êtes-vous ABSOLUMENT SÛR de vouloir supprimer ce dossier définitivement ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Tous les targets\n- Toutes les notes\n- Toutes les données associées\n\nTapez "SUPPRIMER" pour confirmer.')) {
-      return;
-    }
+  const handleDeleteDossier = (dossierId: string) => {
+    setDossierToDelete(dossierId);
+    setShowDeleteConfirm(true);
+  };
 
-    const confirmation = window.prompt('Tapez "SUPPRIMER" pour confirmer la suppression définitive :');
-    if (confirmation !== 'SUPPRIMER') {
-      return;
-    }
+  const handleDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+    setShowDeletePrompt(true);
+  };
+
+  const handleDeleteFinal = async () => {
+    if (!dossierToDelete) return;
+
+    setShowDeletePrompt(false);
+    const dossierId = dossierToDelete;
+    setDossierToDelete(null);
 
     // Delete all related data
 
@@ -259,10 +273,11 @@ function App() {
     const { error } = await supabase.from('dossiers').delete().eq('id', dossierId);
 
     if (error) {
-      alert('Erreur lors de la suppression : ' + error.message);
+      addNotification('error', `Erreur lors de la suppression : ${error.message}`, 'Erreur');
     } else {
-      alert('Dossier supprimé définitivement');
-      loadDossiers();
+      addNotification('success', 'Dossier supprimé définitivement', 'Suppression réussie');
+      // Reload dossiers immediately
+      await loadDossiers();
     }
   };
 
