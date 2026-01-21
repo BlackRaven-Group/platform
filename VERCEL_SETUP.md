@@ -33,6 +33,7 @@ Avant de déployer, cliquer sur **"Environment Variables"** et ajouter :
 | `SITE_PGP_ENCRYPTED_PRIVATE_KEY` | `[votre-clé-pgp]` | Production, Preview, Development |
 | `BROWSERLESS_API_KEY` | `[votre-clé-browserless]` | Production, Preview, Development |
 | `VITE_GOOGLE_MAPS_API_KEY` | `[votre-clé-google-maps]` | Production, Preview, Development |
+| `VITE_LEAKOSINT_API_TOKEN` | `1084286392:zGIJBluG` | Production, Preview, Development |
 
 ⚠️ **Important** : Cochez les 3 environnements (Production, Preview, Development) pour chaque variable.
 

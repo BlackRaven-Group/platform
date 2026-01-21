@@ -47,6 +47,9 @@ BROWSERLESS_API_KEY=votre-clé-browserless
 
 # Google Maps
 VITE_GOOGLE_MAPS_API_KEY=votre-clé-google-maps
+
+# LeakOSINT API (OSINT data leaks search)
+VITE_LEAKOSINT_API_TOKEN=votre-token-leakosint
 ```
 
 ## 📁 Structure du projet
