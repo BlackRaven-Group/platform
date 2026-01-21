@@ -956,6 +956,37 @@ function App() {
           </div>
         </div>
       </footer>
+
+      <NotificationContainer />
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="SUPPRESSION DÉFINITIVE"
+        message="⚠️ Êtes-vous ABSOLUMENT SÛR de vouloir supprimer ce dossier définitivement ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Tous les targets\n- Toutes les notes\n- Toutes les données associées"
+        confirmText="CONTINUER"
+        cancelText="ANNULER"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+          setDossierToDelete(null);
+        }}
+        type="danger"
+      />
+
+      <PromptModal
+        isOpen={showDeletePrompt}
+        title="CONFIRMATION FINALE"
+        message="Tapez 'SUPPRIMER' pour confirmer la suppression définitive :"
+        placeholder="SUPPRIMER"
+        expectedValue="SUPPRIMER"
+        confirmText="SUPPRIMER"
+        cancelText="ANNULER"
+        onConfirm={handleDeleteFinal}
+        onCancel={() => {
+          setShowDeletePrompt(false);
+          setDossierToDelete(null);
+        }}
+      />
     </div>
   );
 }
