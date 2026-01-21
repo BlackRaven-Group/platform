@@ -7,14 +7,7 @@ Le projet utilise **un seul build** qui s'adapte automatiquement au domaine :
 | Domaine | Comportement |
 |---------|-------------|
 | `blackraven.fr` | Site vitrine public (landing page professionnelle) |
-| `op.blackraven.fr` | Site opérationnel protégé par Master Poulet |
 | `localhost` | Mode développement (comportement opérationnel) |
-
-## Système de Protection "Master Poulet" 🍗
-
-Sur `op.blackraven.fr`, les visiteurs doivent "commander un poulet" :
-- **🔥 Bien Cuit** → Accès accordé au site opérationnel
-- **🥩 Mi-Cuit** → Bannissement permanent (stocké dans localStorage)
 
 ## Déploiement sur Netlify - Guide Manuel
 
@@ -58,8 +51,6 @@ Une fois le déploiement terminé :
 1. Aller dans **Site settings** → **Domain management**
 2. Cliquer sur **"Add custom domain"**
 3. Entrer `blackraven.fr` et suivre les instructions DNS
-4. Cliquer à nouveau sur **"Add custom domain"**
-5. Entrer `op.blackraven.fr` et suivre les instructions DNS
 
 ### Option 1 : Un seul site avec deux domaines (Recommandé)
 
@@ -71,7 +62,6 @@ Une fois le déploiement terminé :
 2. **Configurer les domaines**
    - Aller dans **Site settings** → **Domain management**
    - Ajouter `blackraven.fr` comme domaine principal
-   - Ajouter `op.blackraven.fr` comme alias
 
 3. **Configurer les variables d'environnement**
    
@@ -86,17 +76,6 @@ Une fois le déploiement terminé :
    VITE_GOOGLE_MAPS_API_KEY=votre-clé-google-maps
    ```
 
-### Option 2 : Deux sites Netlify séparés (recommandé pour plus de contrôle)
-
-#### Site 1 : blackraven.fr (vitrine)
-1. Créer un site dédié pour la vitrine
-2. Même configuration de build
-3. Domaine personnalisé : `blackraven.fr`
-
-#### Site 2 : op.blackraven.fr (opérationnel)
-1. Créer un second site
-2. Même configuration de build
-3. Domaine personnalisé : `op.blackraven.fr`
 
 ## Configuration DNS (chez votre registrar)
 
@@ -105,11 +84,6 @@ Une fois le déploiement terminé :
 Type: CNAME (ou A selon Netlify)
 Name: @
 Value: [votre-site].netlify.app
-
-# Pour op.blackraven.fr
-Type: CNAME
-Name: op
-Value: [votre-site-op].netlify.app
 ```
 
 ## Variables d'environnement requises
@@ -126,18 +100,11 @@ Value: [votre-site-op].netlify.app
 ## Tester en local
 
 ```bash
-# Mode normal (localhost = opérationnel avec Master Poulet)
+# Mode normal (localhost = opérationnel)
 npm run dev
 
 # Pour simuler le mode vitrine, modifiez temporairement getSiteMode() dans App.tsx
 ```
-
-## Sécurité
-
-- Le bannissement "Mi-Cuit" est stocké en localStorage (`mp_banned`)
-- L'accès "Bien Cuit" est stocké en localStorage (`mp_access_granted`)
-- Ces valeurs peuvent être effacées par l'utilisateur (localStorage.clear())
-- Pour une sécurité renforcée, envisagez d'ajouter un tracking côté serveur
 
 ## Notes importantes
 

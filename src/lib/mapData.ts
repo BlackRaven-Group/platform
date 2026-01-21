@@ -13,18 +13,40 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
   const lines = csvContent.split('\n').slice(1);
   const locations: MapLocation[] = [];
   let idCounter = 0;
+  let matchedCount = 0;
+  let skippedCount = 0;
+
+  console.log('Parsing CSV with', lines.length, 'lines');
 
   for (const line of lines) {
-    if (!line.trim()) continue;
+    if (!line.trim()) {
+      skippedCount++;
+      continue;
+    }
 
-    const match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
-    if (!match) continue;
+    // Try to match the format: Note,"https://www.google.com/maps/search/lat,lng"
+    // Example: Tomb,"https://www.google.com/maps/search/-8.9040006,39.5060725"
+    let match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/search\/([0-9.-]+),([0-9.-]+)/);
+    
+    // If that doesn't work, try alternative format with more flexible URL matching
+    if (!match) {
+      match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
+    }
+    
+    if (!match) {
+      skippedCount++;
+      continue;
+    }
 
     const note = match[1]?.trim() || '';
     const lat = parseFloat(match[2]);
     const lng = parseFloat(match[3]);
 
-    if (isNaN(lat) || isNaN(lng)) continue;
+    if (isNaN(lat) || isNaN(lng)) {
+      skippedCount++;
+      console.warn('Invalid coordinates in line:', line.substring(0, 100));
+      continue;
+    }
 
     const category = detectCategory(note);
     const color = getCategoryColor(category);
@@ -39,8 +61,10 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
       category,
       color
     });
+    matchedCount++;
   }
 
+  console.log(`Parsed ${matchedCount} locations, skipped ${skippedCount} lines`);
   return locations;
 }
 
@@ -126,7 +150,7 @@ export function searchLocations(locations: MapLocation[], query: string): MapLoc
 
 export async function loadMapLocations(): Promise<MapLocation[]> {
   try {
-    console.log('🔵 loadMapLocations: Starting to fetch CSV files...');
+    console.log('Fetching CSV files from /data/...');
     const [response1, response2, response3, response7] = await Promise.all([
       fetch('/data/Google map - Google map-1 -by MaxAI.csv'),
       fetch('/data/Google map - Google map-2 -by MaxAI.csv'),
@@ -134,7 +158,7 @@ export async function loadMapLocations(): Promise<MapLocation[]> {
       fetch('/data/Google map - Google map-7 -by MaxAI.csv')
     ]);
 
-    console.log('🔵 loadMapLocations: Responses received', {
+    console.log('CSV responses:', {
       r1: response1.status,
       r2: response2.status,
       r3: response3.status,
@@ -142,7 +166,7 @@ export async function loadMapLocations(): Promise<MapLocation[]> {
     });
 
     if (!response1.ok || !response2.ok || !response3.ok || !response7.ok) {
-      console.error('❌ Some CSV files failed to load!', {
+      console.error('Some CSV files failed to load:', {
         r1: response1.statusText,
         r2: response2.statusText,
         r3: response3.statusText,
@@ -157,7 +181,7 @@ export async function loadMapLocations(): Promise<MapLocation[]> {
       response7.text()
     ]);
 
-    console.log('🔵 loadMapLocations: CSV content lengths', {
+    console.log('CSV content lengths:', {
       csv1: csv1.length,
       csv2: csv2.length,
       csv3: csv3.length,
@@ -169,18 +193,18 @@ export async function loadMapLocations(): Promise<MapLocation[]> {
     const locations3 = parseCSVLocations(csv3);
     const locations7 = parseCSVLocations(csv7);
 
-    console.log('🔵 loadMapLocations: Parsed locations', {
+    console.log('Parsed locations:', {
       loc1: locations1.length,
       loc2: locations2.length,
       loc3: locations3.length,
       loc7: locations7.length
     });
 
-    const total = [...locations1, ...locations2, ...locations3, ...locations7];
-    console.log('✅ loadMapLocations: Total locations:', total.length);
-    return total;
+    const all = [...locations1, ...locations2, ...locations3, ...locations7];
+    console.log('Total locations:', all.length);
+    return all;
   } catch (error) {
-    console.error('❌ Error loading map data:', error);
+    console.error('Error loading map data:', error);
     return [];
   }
 }

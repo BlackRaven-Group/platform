@@ -43,13 +43,14 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
   }, []);
 
   useEffect(() => {
-    // Use the same condition as the old version - only initialize when we have locations
-    if (scriptLoaded && allLocations.length > 0) {
+    if (scriptLoaded && !loading && allLocations.length >= 0) {
       if (!map.current) {
         initializeMap();
+      } else {
+        updateMarkers();
       }
     }
-  }, [scriptLoaded, allLocations]);
+  }, [scriptLoaded, loading, allLocations.length]);
 
   useEffect(() => {
     updateDisplayedLocations();
@@ -86,6 +87,7 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
     await ensureMapPinsTables();
 
     const dbPins = await loadMapPinsFromDatabase(undefined, undefined, undefined, 100);
+    console.log('Database pins loaded:', dbPins.length);
 
     if (dbPins.length > 0) {
       setUseDatabase(true);
@@ -106,16 +108,17 @@ export default function GoogleMap({ onBack }: GoogleMapProps) {
       const stats = await getDbCategoryStats();
       setCategoryStats(stats);
       setDisplayedLocations(mappedPins);
+      console.log('Using database pins:', mappedPins.length);
     } else {
       setUseDatabase(false);
-      console.log('🔵 No database pins, loading from CSV...');
+      console.log('Loading from CSV files...');
       const locations = await loadMapLocations();
-      console.log('🔵 CSV locations received:', locations.length);
+      console.log('CSV locations loaded:', locations.length);
       setAllLocations(locations);
       setCategoryStats(getCategoryStats(locations));
       setDisplayedLocations(locations);
       setTotalPinsCount(locations.length);
-      console.log('✅ All locations set, total:', locations.length);
+      console.log('All locations set:', locations.length);
     }
 
     setLoading(false);

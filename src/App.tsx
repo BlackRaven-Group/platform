@@ -16,7 +16,6 @@ import GLPITicketing from './components/GLPITicketing';
 import SupportDashboard from './components/SupportDashboard';
 import AdminPanel from './components/AdminPanel';
 import ClientTicketsDashboard from './components/ClientTicketsDashboard';
-import MasterPoulet from './components/MasterPoulet';
 import PublicLanding from './components/PublicLanding';
 import { LogOut, Shield, FileText, Users, Menu, X } from 'lucide-react';
 
@@ -27,21 +26,16 @@ type SiteMode = 'vitrine' | 'operational' | 'local';
 function getSiteMode(): SiteMode {
   const hostname = window.location.hostname;
   
-  // op.blackraven.fr → Site opérationnel (avec Master Poulet)
-  if (hostname.startsWith('op.') || hostname.includes('op-blackraven')) {
-    return 'operational';
-  }
-  
-  // blackraven.fr (sans op.) → Site vitrine public
-  if (hostname.includes('blackraven') && !hostname.startsWith('op.')) {
+  // blackraven.fr → Site vitrine public
+  if (hostname.includes('blackraven')) {
     return 'vitrine';
   }
   
   // Localhost / dev → Par défaut opérationnel pour les tests
-  return 'local';
+  return 'operational';
 }
 
-type ViewType = 'masterPoulet' | 'landing' | 'clientAuth' | 'services' | 'commChoice' | 'pgp' | 'glpi' | 'clientTickets' | 'adminLogin' | 'support' | 'list' | 'create' | 'view' | 'osint' | 'map' | 'surveillance' | 'adminPanel';
+type ViewType = 'landing' | 'clientAuth' | 'services' | 'commChoice' | 'pgp' | 'glpi' | 'clientTickets' | 'adminLogin' | 'support' | 'list' | 'create' | 'view' | 'osint' | 'map' | 'surveillance' | 'adminPanel';
 type UserType = 'none' | 'client' | 'admin';
 
 interface UserPermissions {
@@ -53,7 +47,6 @@ interface UserPermissions {
 
 function App() {
   const [siteMode] = useState<SiteMode>(getSiteMode());
-  const [accessGranted, setAccessGranted] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [userType, setUserType] = useState<UserType>('none');
   const [clientUser, setClientUser] = useState<any>(null);
@@ -79,21 +72,12 @@ function App() {
       return;
     }
     
-    // En mode opérationnel ou local, vérifier l'accès Master Poulet d'abord
-    const hasAccess = localStorage.getItem('mp_access_granted') === 'true';
-    if (hasAccess) {
-      setAccessGranted(true);
-      checkSessions();
-    } else {
-      setSessionLoading(false);
-    }
+    // En mode opérationnel, vérifier les sessions
+    checkSessions();
   }, [siteMode]);
 
   useEffect(() => {
-    if (authenticated && userType === 'admin' && currentView === 'adminLogin') {
-      // Only check role if we're still on the login screen
-      // This prevents double-checking when already redirected
-      console.log('🔵 useEffect: Admin authenticated, checking role...');
+    if (authenticated && userType === 'admin') {
       checkUserRole();
     }
   }, [authenticated, userType]);
@@ -128,29 +112,20 @@ function App() {
     if (session) {
       setUserType('admin');
       setAuthenticated(true);
-      // checkUserRole will be called by useEffect and will redirect
     }
     setSessionLoading(false);
   };
 
   const checkUserRole = async () => {
     try {
-      console.log('🔵 checkUserRole: Starting...');
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) {
-        console.error('❌ Error getting user:', userError);
-        setUserRole('client');
-        return;
-      }
-      
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.error('❌ No user found');
+        console.error('No user found');
         setUserRole('client');
         return;
       }
 
-      console.log('✅ User found:', user.email, user.id);
+      console.log('Checking role for user:', user.email, user.id);
 
       const { data, error } = await supabase
         .from('admin_roles')
@@ -158,12 +133,12 @@ function App() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('🔵 Admin role query result:', { data, error });
+      console.log('Admin role query result:', { data, error });
 
       if (!error && data) {
         const roleName = data.role || 'client';
         const permissions = data.permissions || {};
-        console.log('✅ Setting role to:', roleName, 'with permissions:', permissions);
+        console.log('Setting role to:', roleName, 'with permissions:', permissions);
         setUserRole(roleName);
         setUserPermissions({
           manage_dossiers: permissions.manage_dossiers || false,
@@ -173,26 +148,22 @@ function App() {
         });
 
         if (roleName === 'support') {
-          console.log('🔵 Redirecting to support dashboard...');
           setCurrentView('support');
         } else if (roleName === 'super_admin' || roleName === 'admin') {
-          console.log('🔵 Redirecting to OSINT dashboard (list)...');
-          await loadDossiers();
+          loadDossiers();
           setCurrentView('list');
         } else {
-          console.log('🔵 Redirecting to list (default)...');
-          await loadDossiers();
+          loadDossiers();
           setCurrentView('list');
         }
       } else {
-        console.error('❌ No admin role found or error:', error);
-        console.log('🔵 Redirecting to list anyway...');
+        console.error('No admin role found or error:', error);
         setUserRole('client');
-        await loadDossiers();
+        loadDossiers();
         setCurrentView('list');
       }
     } catch (err) {
-      console.error('❌ Error checking user role:', err);
+      console.error('Error checking user role:', err);
       setUserRole('client');
     }
   };
@@ -338,10 +309,6 @@ function App() {
     setCurrentView('support');
   };
 
-  const handleAccessGranted = () => {
-    setAccessGranted(true);
-    checkSessions();
-  };
 
   // ========================================
   // MODE VITRINE - blackraven.fr (site public)
@@ -351,7 +318,7 @@ function App() {
   }
 
   // ========================================
-  // MODE OPÉRATIONNEL - op.blackraven.fr
+  // MODE OPÉRATIONNEL
   // ========================================
   
   // Écran de chargement
@@ -365,11 +332,6 @@ function App() {
     );
   }
 
-  // PROTECTION MASTER POULET - Obligatoire avant d'accéder au site
-  if (!accessGranted && (siteMode === 'operational' || siteMode === 'local')) {
-    return <MasterPoulet onAccessGranted={handleAccessGranted} />;
-  }
-
   if (currentView === 'clientAuth') {
     return <ClientAuth
       onAuthSuccess={handleClientAuthSuccess}
@@ -380,10 +342,8 @@ function App() {
   if (currentView === 'adminLogin' && !authenticated) {
     return <AuthScreen
       onAuthenticated={() => {
-        console.log('🔵 Admin authenticated, setting state...');
         setAuthenticated(true);
         setUserType('admin');
-        // checkUserRole will be called by useEffect
       }}
       onBack={() => setCurrentView('landing')}
     />;

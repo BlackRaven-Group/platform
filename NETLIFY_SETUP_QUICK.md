@@ -30,7 +30,6 @@ VITE_GOOGLE_MAPS_API_KEY=[votre-clé-google-maps]
 Dans **Site settings** → **Domain management** :
 
 - [ ] Ajouter `blackraven.fr` (domaine principal)
-- [ ] Ajouter `op.blackraven.fr` (alias)
 
 ### 5️⃣ Configuration DNS (chez votre registrar)
 
@@ -38,13 +37,6 @@ Pour `blackraven.fr` :
 ```
 Type: CNAME
 Name: @
-Value: [votre-site].netlify.app
-```
-
-Pour `op.blackraven.fr` :
-```
-Type: CNAME
-Name: op
 Value: [votre-site].netlify.app
 ```
 
@@ -63,8 +55,7 @@ Value: [votre-site].netlify.app
 
 1. Vérifier que le build passe sans erreur
 2. Tester `blackraven.fr` → doit afficher la landing page publique
-3. Tester `op.blackraven.fr` → doit afficher "Master Poulet"
-4. Vérifier que les variables d'environnement sont bien chargées
+3. Vérifier que les variables d'environnement sont bien chargées
 
 ## 🔧 Fichiers de configuration déjà présents
 
