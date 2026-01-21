@@ -1033,7 +1033,7 @@ function App() {
         }}
       />
 
-      <CookieConsent />
+      <CookieConsent showAfterSplash={!showAccess && !showSplash} />
     </div>
   );
 }

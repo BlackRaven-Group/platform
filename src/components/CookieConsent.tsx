@@ -1,24 +1,34 @@
 import { useState, useEffect } from 'react';
 import { X, Cookie } from 'lucide-react';
 
-export default function CookieConsent() {
+interface CookieConsentProps {
+  showAfterSplash?: boolean;
+}
+
+export default function CookieConsent({ showAfterSplash = false }: CookieConsentProps) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    // Ne pas afficher si on attend encore le splash screen
+    if (!showAfterSplash) {
+      return;
+    }
+
     // Vérifier si l'utilisateur a déjà donné son consentement
     const consent = localStorage.getItem('cookie_consent');
     console.log('🍪 Cookie consent check:', consent);
+    
     if (!consent) {
-      // Afficher après un court délai pour ne pas perturber l'expérience
+      // Afficher après un délai pour laisser le temps au splash screen de se terminer
       const timer = setTimeout(() => {
         console.log('🍪 Showing cookie consent banner');
         setShow(true);
-      }, 2000);
+      }, 3000); // 3 secondes après la fin du splash
       return () => clearTimeout(timer);
     } else {
       console.log('🍪 Cookie consent already given:', consent);
     }
-  }, []);
+  }, [showAfterSplash]);
 
   const handleAccept = () => {
     localStorage.setItem('cookie_consent', 'accepted');
