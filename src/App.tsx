@@ -1032,6 +1032,8 @@ function App() {
           setDossierToDelete(null);
         }}
       />
+
+      <CookieConsent />
     </div>
   );
 }
