@@ -85,35 +85,22 @@ export async function executeOSINTSearch(params: OSINTSearchParams, dossierId?: 
       requestBody.bot_name = config.bot_name;
     }
 
-    // Use Edge Function if available, otherwise call API directly
+    // Always use Edge Function (API doesn't support CORS from browser)
     const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/osint-search`;
     
-    let response: Response;
-    try {
-      response = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify(requestBody)
-      });
-      
-      // If Edge Function returns error, try direct API
-      if (!response.ok) {
-        throw new Error(`Edge Function error: ${response.status}`);
-      }
-    } catch (edgeError) {
-      // If Edge Function fails, call API directly
-      console.warn('Edge Function failed, calling API directly:', edgeError);
-      response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
+    const response = await fetch(edgeFunctionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Edge Function error (${response.status}): ${errorText}`);
     }
 
     const result = await response.json();
