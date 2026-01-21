@@ -21,21 +21,43 @@ export default function SplashScreen({
   useEffect(() => {
     // Créer l'élément audio pour le son du corbeau
     audioRef.current = new Audio(soundUrl);
-    audioRef.current.volume = 0.7; // Volume à 70% pour ne pas être trop fort
+    audioRef.current.volume = 0.8; // Volume à 80%
     audioRef.current.preload = 'auto';
+    
+    // Les navigateurs modernes bloquent l'autoplay audio sans interaction utilisateur
+    // On va essayer de jouer le son, et si ça échoue, on le jouera au premier clic/interaction
+    const playAudio = async () => {
+      if (audioRef.current && !hasPlayedRef.current) {
+        try {
+          await audioRef.current.play();
+          hasPlayedRef.current = true;
+          console.log('Audio played successfully');
+        } catch (err: any) {
+          console.warn('Autoplay blocked, will play on user interaction:', err);
+          // Si l'autoplay est bloqué, on écoute le premier clic/touch
+          const playOnInteraction = () => {
+            if (audioRef.current && !hasPlayedRef.current) {
+              audioRef.current.play().catch(e => console.warn('Audio play failed:', e));
+              hasPlayedRef.current = true;
+            }
+            document.removeEventListener('click', playOnInteraction);
+            document.removeEventListener('touchstart', playOnInteraction);
+            document.removeEventListener('keydown', playOnInteraction);
+          };
+          document.addEventListener('click', playOnInteraction, { once: true });
+          document.addEventListener('touchstart', playOnInteraction, { once: true });
+          document.addEventListener('keydown', playOnInteraction, { once: true });
+        }
+      }
+    };
 
     // Durée exacte du GIF (environ 2.5 secondes d'après l'observation)
     // Ajustez cette valeur si nécessaire pour correspondre exactement à la durée du GIF
     const gifDuration = 2500; // 2.5 secondes en millisecondes
     
     const startSplash = () => {
-      // Jouer le son du corbeau au début
-      if (audioRef.current && !hasPlayedRef.current) {
-        audioRef.current.play().catch(err => {
-          console.warn('Could not play audio:', err);
-        });
-        hasPlayedRef.current = true;
-      }
+      // Essayer de jouer le son du corbeau au début
+      playAudio();
 
       // Démarrer le fade out juste avant la fin du GIF pour une transition fluide
       timeoutRef.current = setTimeout(() => {
