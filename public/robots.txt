@@ -1,19 +1,18 @@
+# Block all search engines and crawlers
 User-agent: *
 Disallow: /
-
-# Block all crawlers
-User-agent: *
 Crawl-delay: 86400
-Disallow: /
 
 User-agent: Googlebot
 Disallow: /
+Crawl-delay: 86400
 
 User-agent: Googlebot-Image
 Disallow: /
 
 User-agent: Bingbot
 Disallow: /
+Crawl-delay: 86400
 
 User-agent: Slurp
 Disallow: /
@@ -57,4 +56,5 @@ Disallow: /
 User-agent: Claude-Web
 Disallow: /
 
-Sitemap:
+# No sitemap - site should not be indexed
+# Sitemap: (disabled)
