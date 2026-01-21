@@ -7,11 +7,16 @@ export default function CookieConsent() {
   useEffect(() => {
     // Vérifier si l'utilisateur a déjà donné son consentement
     const consent = localStorage.getItem('cookie_consent');
+    console.log('🍪 Cookie consent check:', consent);
     if (!consent) {
       // Afficher après un court délai pour ne pas perturber l'expérience
-      setTimeout(() => {
+      const timer = setTimeout(() => {
+        console.log('🍪 Showing cookie consent banner');
         setShow(true);
       }, 2000);
+      return () => clearTimeout(timer);
+    } else {
+      console.log('🍪 Cookie consent already given:', consent);
     }
   }, []);
 
