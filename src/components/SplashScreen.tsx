@@ -78,9 +78,15 @@ export default function SplashScreen({
       events.forEach(event => {
         document.removeEventListener(event, handleInteraction);
       });
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
   }, [soundUrl]);
 
+  // Gérer le timing du splash screen
+  useEffect(() => {
     // Durée exacte du GIF (environ 2.5 secondes d'après l'observation)
     // Ajustez cette valeur si nécessaire pour correspondre exactement à la durée du GIF
     const gifDuration = 2500; // 2.5 secondes en millisecondes
@@ -118,6 +124,9 @@ export default function SplashScreen({
       
       return () => {
         imgRef.current?.removeEventListener('load', handleLoad);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
       };
     }
 
@@ -125,12 +134,8 @@ export default function SplashScreen({
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
     };
-  }, [onComplete, soundUrl]);
+  }, [onComplete]);
 
   if (!show) return null;
 

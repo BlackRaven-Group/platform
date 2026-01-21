@@ -51,18 +51,18 @@ export default function LandingPage({ onAccessServices, onAdminAccess }: Landing
         </header>
 
         <main>
-          <section className="py-24 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto text-center">
+          <section className="py-24 px-4 sm:px-6 lg:px-8 relative">
+            <div className="max-w-7xl mx-auto text-center relative z-10">
               <div className="inline-block mb-8 px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-sm animate-pulse">
                 <span className="text-white text-sm font-bold tracking-widest">[CLASSIFIED OPERATIONS]</span>
               </div>
               <img
                 src="/hero-logo.png"
                 alt="BlackRaven"
-                className="w-96 h-96 md:w-[600px] md:h-[600px] mx-auto mb-8 opacity-40 hover:opacity-50 transition-opacity duration-300 object-contain absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -z-10"
-                style={{ marginTop: '-2rem' }}
+                className="w-[500px] h-[500px] md:w-[800px] md:h-[800px] mx-auto mb-8 opacity-35 hover:opacity-45 transition-opacity duration-300 object-contain absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ marginTop: '-1rem', zIndex: 0 }}
               />
-              <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight glitch" data-text="VALHALLA INTELLIGENCE">
+              <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight glitch relative z-20" data-text="VALHALLA INTELLIGENCE">
                 VALHALLA
                 <br />
                 <span className="text-zinc-200">
