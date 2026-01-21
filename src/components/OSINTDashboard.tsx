@@ -8,7 +8,7 @@ interface OSINTDashboardProps {
   onClose?: () => void;
 }
 
-export default function OSINTDashboard({ dossierId, onClose }: OSINTDashboardProps) {
+export default function OSINTDashboard({ dossierId, onClose, onDossierCreated }: OSINTDashboardProps) {
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(100);
   const [lang, setLang] = useState<'en' | 'ru'>('en');
@@ -91,6 +91,7 @@ export default function OSINTDashboard({ dossierId, onClose }: OSINTDashboardPro
         searchId={currentSearchId}
         dossierId={dossierId}
         onBack={handleBackToSearch}
+        onDossierCreated={onDossierCreated}
       />
     );
   }

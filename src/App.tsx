@@ -40,6 +40,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string>('client');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [newDossierAccessCode, setNewDossierAccessCode] = useState<string | null>(null);
   const [userPermissions, setUserPermissions] = useState<UserPermissions>({
     manage_dossiers: false,
     manage_tickets: false,
@@ -274,6 +275,13 @@ function App() {
   const handleBackToOSINT = () => {
     loadDossiers();
     setCurrentView('list');
+  };
+
+  const handleOSINTDossierCreated = (dossierId: string, accessCode: string) => {
+    setNewDossierAccessCode(accessCode);
+    setSelectedDossierId(dossierId);
+    setCurrentView('view');
+    loadDossiers();
   };
 
   const handleGoToOSINT = () => {
@@ -805,7 +813,10 @@ function App() {
           )}
 
           {currentView === 'osint' && (
-            <OSINTDashboard onClose={handleBackToList} />
+            <OSINTDashboard 
+              onClose={handleBackToList}
+              onDossierCreated={handleOSINTDossierCreated}
+            />
           )}
         </main>
       )}

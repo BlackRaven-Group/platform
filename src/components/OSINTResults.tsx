@@ -3,14 +3,16 @@ import { ArrowLeft, CheckSquare, AlertTriangle, UserPlus, FileText, Loader } fro
 import { getSearchResults, confirmSearchResults, extractTargetsFromResults, type OSINTResult, type OSINTSearchResponse, type ExtractedTarget } from '../lib/osint';
 import { supabase } from '../lib/supabase';
 import { encryptPassword } from '../lib/crypto';
+import { generateAccessCode, hashCode } from '../lib/codename';
 
 interface OSINTResultsProps {
   searchId: string;
   dossierId?: string;
   onBack: () => void;
+  onDossierCreated?: (dossierId: string, accessCode: string) => void;
 }
 
-export default function OSINTResults({ searchId, dossierId, onBack }: OSINTResultsProps) {
+export default function OSINTResults({ searchId, dossierId, onBack, onDossierCreated }: OSINTResultsProps) {
   const [search, setSearch] = useState<OSINTSearchResponse | null>(null);
   const [results, setResults] = useState<OSINTResult[]>([]);
   const [extractedTargets, setExtractedTargets] = useState<ExtractedTarget[]>([]);
@@ -66,14 +68,22 @@ export default function OSINTResults({ searchId, dossierId, onBack }: OSINTResul
 
       let targetDossierId = dossierId;
 
+      let newDossierAccessCode: string | null = null;
+
       if (!targetDossierId) {
+        // Generate access code for new dossier
+        const accessCode = generateAccessCode();
+        const hashedAccessCode = await hashCode(accessCode);
+        newDossierAccessCode = accessCode;
+
         const { data: newDossier, error: dossierError } = await supabase
           .from('dossiers')
           .insert({
             title: `OSINT: ${search?.query || 'Investigation'}`,
             description: `Automated dossier from OSINT search query: "${search?.query}"`,
             classification: 'confidential',
-            status: 'active'
+            status: 'active',
+            access_code: hashedAccessCode
           })
           .select()
           .single();
@@ -183,8 +193,13 @@ export default function OSINTResults({ searchId, dossierId, onBack }: OSINTResul
         }
       }
 
-      alert(`Successfully created ${selectedTargets.size} target(s) in dossier`);
-      onBack();
+      // If new dossier was created, show access code and redirect
+      if (newDossierAccessCode && onDossierCreated) {
+        onDossierCreated(targetDossierId!, newDossierAccessCode);
+      } else {
+        alert(`Successfully created ${selectedTargets.size} target(s) in dossier`);
+        onBack();
+      }
     } catch (error: any) {
       console.error('Error creating targets:', error);
       alert('Failed to create targets: ' + error.message);
