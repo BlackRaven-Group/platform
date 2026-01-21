@@ -216,8 +216,8 @@ export default function LegalPage({ onBack }: LegalPageProps) {
             <section>
               <h2 className="text-xl font-bold text-amber-600 mb-4 flex items-center space-x-2">
                 <Lock className="w-5 h-5" />
-                <span>6. CONFIDENTIALITÉ ET SÉCURITÉ</h2>
-              </div>
+                <span>6. CONFIDENTIALITÉ ET SÉCURITÉ</span>
+              </h2>
               <div className="text-zinc-300 space-y-3">
                 <p>
                   Toutes les communications et données transitant par la plateforme sont traitées avec le plus grand soin. 
