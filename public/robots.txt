@@ -1,6 +1,11 @@
 User-agent: *
 Disallow: /
 
+# Block all crawlers
+User-agent: *
+Crawl-delay: 86400
+Disallow: /
+
 User-agent: Googlebot
 Disallow: /
 
