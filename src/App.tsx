@@ -804,12 +804,56 @@ function App() {
           )}
 
           {currentView === 'view' && selectedDossierId && (
-            <DossierAccess
-              dossierId={selectedDossierId}
-              codeName={dossiers.find(d => d.id === selectedDossierId)?.code_name || 'INCONNU'}
-              onBack={handleBackToList}
-              onDeleted={handleDossierDeleted}
-            />
+            <>
+              {newDossierAccessCode && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur z-50 flex items-center justify-center p-4">
+                  <div className="terminal-box max-w-2xl border-white bg-zinc-900/30 w-full">
+                    <div className="flex items-center space-x-3 mb-6 pb-6 border-b border-white">
+                      <Key className="w-8 h-8 text-white" />
+                      <span className="text-zinc-200 font-semibold">CODE D'ACCÈS GÉNÉRÉ</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="bg-black border-2 border-white p-6 text-center">
+                        <div className="text-xs text-zinc-500 mb-2">NOM DE CODE</div>
+                        <div className="text-2xl font-bold text-zinc-200 mb-4 font-mono">
+                          {dossiers.find(d => d.id === selectedDossierId)?.code_name || 'INCONNU'}
+                        </div>
+
+                        <div className="text-xs text-zinc-500 mb-2">CODE D'ACCÈS</div>
+                        <div className="text-4xl font-bold text-white tracking-wider font-mono">{newDossierAccessCode}</div>
+                      </div>
+
+                      <div className="bg-red-950/30 border-2 border-red-900 p-4 text-red-400 text-sm">
+                        <div className="font-bold mb-2">⚠️ AVERTISSEMENT DE SÉCURITÉ</div>
+                        <ul className="space-y-1 text-xs">
+                          <li>• Conservez ce code en lieu sûr - il ne sera PLUS affiché</li>
+                          <li>• 5 tentatives d'accès échouées supprimeront définitivement ce dossier</li>
+                          <li>• Aucune récupération possible après suppression</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end mt-6 pt-6 border-t border-zinc-800">
+                      <button 
+                        onClick={() => {
+                          setNewDossierAccessCode(null);
+                        }} 
+                        className="terminal-button-primary"
+                      >
+                        COMPRIS
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <DossierAccess
+                dossierId={selectedDossierId}
+                codeName={dossiers.find(d => d.id === selectedDossierId)?.code_name || 'INCONNU'}
+                onBack={handleBackToList}
+                onDeleted={handleDossierDeleted}
+              />
+            </>
           )}
 
           {currentView === 'osint' && (
