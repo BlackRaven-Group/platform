@@ -24,29 +24,19 @@ export function parseCSVLocations(csvContent: string): MapLocation[] {
       continue;
     }
 
-    // Try multiple regex patterns to match different CSV formats
-    // Format 1: Note,"https://www.google.com/maps/search/lat,lng"
-    let match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/search\/([0-9.-]+),([0-9.-]+)/);
+    // Format: Repère placé,Note,"https://www.google.com/maps/search/lat,lng",
+    // Example: Repère placé,Tomb,"https://www.google.com/maps/search/-8.9040006,39.5060725",
+    // We need to match: Note (2nd column) and coordinates in URL (3rd column)
+    let match = line.match(/^[^,]*?,([^,]*?),"https:\/\/www\.google\.com\/maps\/search\/([0-9.-]+),([0-9.-]+)/);
     
-    // Format 2: Note,"https://www.google.com/maps/place/.../lat,lng"
+    // Alternative format if quotes are different
     if (!match) {
-      match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
+      match = line.match(/^[^,]*?,([^,]*?),"https:\/\/www\.google\.com\/maps\/search\/([0-9.-]+),([0-9.-]+)"/);
     }
     
-    // Format 3: Note,"https://www.google.com/maps/@lat,lng"
+    // More flexible: any Google Maps URL with coordinates
     if (!match) {
-      match = line.match(/,([^,]*?),"https:\/\/www\.google\.com\/maps\/@([0-9.-]+),([0-9.-]+)/);
-    }
-    
-    // Format 4: Direct lat,lng in the line (fallback)
-    if (!match) {
-      const coordsMatch = line.match(/([0-9.-]+),([0-9.-]+)/);
-      if (coordsMatch && coordsMatch.length >= 3) {
-        const noteMatch = line.match(/^[^,]*?,([^,]+?),/);
-        if (noteMatch) {
-          match = [null, noteMatch[1], coordsMatch[1], coordsMatch[2]];
-        }
-      }
+      match = line.match(/^[^,]*?,([^,]*?),"https:\/\/www\.google\.com\/maps\/[^"]*?([0-9.-]+),([0-9.-]+)/);
     }
     
     if (!match) {
