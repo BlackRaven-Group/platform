@@ -435,7 +435,7 @@ function App() {
   }
 
   if (currentView === 'landing') {
-    return <LandingPage onAccessServices={handleAccessServices} onAdminAccess={handleAdminAccess} />;
+    return <LandingPage onAccessServices={handleAccessServices} onAdminAccess={handleAdminAccess} onGoToLegal={handleGoToLegal} />;
   }
 
   if (currentView === 'services') {

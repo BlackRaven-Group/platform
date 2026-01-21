@@ -3,9 +3,10 @@ import { Shield, Eye, Network, Lock, ChevronRight, Users, FileSearch, Database, 
 interface LandingPageProps {
   onAccessServices: () => void;
   onAdminAccess: () => void;
+  onGoToLegal?: () => void;
 }
 
-export default function LandingPage({ onAccessServices, onAdminAccess }: LandingPageProps) {
+export default function LandingPage({ onAccessServices, onAdminAccess, onGoToLegal }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-mono relative overflow-hidden">
       <div className="scanline"></div>
@@ -272,9 +273,21 @@ export default function LandingPage({ onAccessServices, onAdminAccess }: Landing
               <span className="text-white font-bold tracking-wider">BLACKRAVEN VALHALLA</span>
               <Skull className="w-5 h-5 text-amber-600" />
             </div>
-            <p className="text-zinc-500 text-xs tracking-wider">
+            <p className="text-zinc-500 text-xs tracking-wider mb-4">
               © 2025 BLACKRAVEN INTELLIGENCE // ALL OPERATIONS CLASSIFIED // VALHALLA AWAITS
             </p>
+            {onGoToLegal && (
+              <div className="flex justify-center items-center gap-4 text-zinc-500 text-xs">
+                <span>|</span>
+                <button
+                  onClick={onGoToLegal}
+                  className="hover:text-white transition-colors underline decoration-zinc-700 hover:decoration-zinc-500"
+                >
+                  Mentions Légales & RGPD
+                </button>
+                <span>|</span>
+              </div>
+            )}
           </div>
         </footer>
       </div>
