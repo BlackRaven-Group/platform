@@ -22,32 +22,77 @@ export default function SplashScreen({
 
   // Préparer l'audio et débloquer l'autoplay avec une interaction réelle
   useEffect(() => {
+    console.log('🎵 Initializing audio:', soundUrl);
+    
     // Créer l'élément audio pour le son du corbeau
     audioRef.current = new Audio(soundUrl);
-    audioRef.current.volume = 0.9; // Volume à 90%
+    audioRef.current.volume = 1.0; // Volume à 100% pour être sûr
     audioRef.current.preload = 'auto';
+    
+    // Vérifier que le fichier audio peut être chargé
+    audioRef.current.addEventListener('canplaythrough', () => {
+      console.log('✅ Audio file loaded and ready to play');
+    });
+    
+    audioRef.current.addEventListener('error', (e) => {
+      console.error('❌ Audio loading error:', e);
+    });
     
     // Fonction pour jouer l'audio
     const playAudio = async () => {
-      if (audioRef.current && !hasPlayedRef.current) {
-        try {
-          await audioRef.current.play();
+      if (!audioRef.current) {
+        console.warn('⚠️ Audio ref is null');
+        return;
+      }
+      
+      if (hasPlayedRef.current) {
+        console.log('ℹ️ Audio already played');
+        return;
+      }
+      
+      console.log('▶️ Attempting to play audio...');
+      console.log('   - Audio readyState:', audioRef.current.readyState);
+      console.log('   - Audio src:', audioRef.current.src);
+      console.log('   - Audio volume:', audioRef.current.volume);
+      
+      try {
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          await playPromise;
           hasPlayedRef.current = true;
           interactionRef.current = true;
           setAudioReady(true);
-          console.log('✅ Audio played successfully');
-        } catch (error: any) {
-          console.warn('⚠️ Autoplay blocked:', error.name);
-          interactionRef.current = false;
+          console.log('✅✅✅ Audio played successfully!');
         }
+      } catch (error: any) {
+        console.error('❌ Audio play failed:', error.name, error.message);
+        interactionRef.current = false;
       }
     };
 
-    // Essayer de jouer immédiatement
-    playAudio();
+    // Attendre que l'audio soit prêt avant d'essayer de jouer
+    const tryPlayWhenReady = () => {
+      if (audioRef.current) {
+        if (audioRef.current.readyState >= 2) { // HAVE_CURRENT_DATA
+          console.log('🎵 Audio is ready, attempting play...');
+          playAudio();
+        } else {
+          console.log('⏳ Waiting for audio to load...');
+          audioRef.current.addEventListener('canplay', () => {
+            console.log('🎵 Audio can play now');
+            playAudio();
+          }, { once: true });
+        }
+      }
+    };
+    
+    // Essayer de jouer après un court délai pour laisser le temps au navigateur
+    setTimeout(tryPlayWhenReady, 100);
     
     // Écouter TOUS les types d'interactions pour débloquer l'audio
-    const handleInteraction = () => {
+    const handleInteraction = (eventType: string) => {
+      console.log(`👆 User interaction detected: ${eventType}`);
       if (!hasPlayedRef.current && audioRef.current) {
         playAudio();
       }
@@ -56,32 +101,50 @@ export default function SplashScreen({
     // Écouter plusieurs événements pour maximiser les chances de déblocage
     const events = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown', 'mousemove', 'pointerdown', 'pointerup'];
     events.forEach(event => {
-      document.addEventListener(event, handleInteraction, { once: true, passive: true });
+      document.addEventListener(event, () => handleInteraction(event), { once: true, passive: true });
     });
 
-    // Créer un bouton invisible qui se déclenche automatiquement pour forcer l'interaction
+    // Créer un bouton visible mais discret qui se déclenche automatiquement
     const createAutoClickButton = () => {
       const button = document.createElement('button');
-      button.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;';
-      button.setAttribute('aria-hidden', 'true');
+      button.innerHTML = '🔊';
+      button.style.cssText = 'position:fixed;top:10px;right:10px;width:40px;height:40px;opacity:0.01;z-index:99999;cursor:pointer;background:transparent;border:none;';
+      button.setAttribute('aria-label', 'Play audio');
+      button.setAttribute('title', 'Play audio');
       document.body.appendChild(button);
       
-      // Déclencher plusieurs fois pour maximiser les chances
-      setTimeout(() => button.click(), 50);
-      setTimeout(() => button.click(), 100);
+      console.log('🔘 Creating auto-click button...');
+      
+      // Déclencher plusieurs fois avec des délais différents
+      const clickAttempts = [50, 150, 300, 500];
+      clickAttempts.forEach((delay, index) => {
+        setTimeout(() => {
+          console.log(`🖱️ Auto-click attempt ${index + 1}...`);
+          button.click();
+          // Aussi essayer de jouer directement après le click
+          setTimeout(() => {
+            if (audioRef.current && !hasPlayedRef.current) {
+              playAudio();
+            }
+          }, 10);
+        }, delay);
+      });
+      
+      // Nettoyer après
       setTimeout(() => {
         if (document.body.contains(button)) {
           document.body.removeChild(button);
+          console.log('🧹 Auto-click button removed');
         }
-      }, 200);
+      }, 1000);
     };
 
     // Essayer de créer un auto-click après un court délai
-    setTimeout(createAutoClickButton, 100);
+    setTimeout(createAutoClickButton, 200);
 
     return () => {
       events.forEach(event => {
-        document.removeEventListener(event, handleInteraction);
+        document.removeEventListener(event, () => handleInteraction(event));
       });
       if (audioRef.current) {
         audioRef.current.pause();
