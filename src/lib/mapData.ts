@@ -157,58 +157,59 @@ export function searchLocations(locations: MapLocation[], query: string): MapLoc
 export async function loadMapLocations(): Promise<MapLocation[]> {
   try {
     console.log('Fetching CSV files from /data/...');
-    const [response1, response2, response3, response7] = await Promise.all([
-      fetch('/data/Google map - Google map-1 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-2 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-3 -by MaxAI.csv'),
-      fetch('/data/Google map - Google map-7 -by MaxAI.csv')
-    ]);
+    
+    // List of all CSV files to load
+    const csvFiles = [
+      'Google map - Google map-1 -by MaxAI.csv',
+      'Google map - Google map-2 -by MaxAI.csv',
+      'Google map - Google map-3 -by MaxAI.csv',
+      'Google map - Google map-4 -by MaxAI.csv',
+      'Google map - Google map-6 -by MaxAI.csv',
+      'Google map - Google map-7 -by MaxAI.csv',
+      'Google map - Google map-8 -by MaxAI.csv',
+      'Google map - Google map-9 -by MaxAI.csv',
+      'Google map - Google map-10 -by MaxAI.csv',
+      'Google map - Google map-39 -by MaxAI.csv',
+      'Google map - Google map-40 -by MaxAI.csv',
+      'Google map - Google map-41 -by MaxAI.csv',
+      'Google map - Google map-42 -by MaxAI.csv',
+      'Google map - Google map-43 -by MaxAI.csv'
+    ];
 
-    console.log('CSV responses:', {
-      r1: response1.status,
-      r2: response2.status,
-      r3: response3.status,
-      r7: response7.status
+    // Fetch all CSV files in parallel
+    const responses = await Promise.all(
+      csvFiles.map(file => fetch(`/data/${file}`))
+    );
+
+    // Check for errors
+    const errors: string[] = [];
+    responses.forEach((response, index) => {
+      if (!response.ok) {
+        errors.push(`${csvFiles[index]}: ${response.statusText}`);
+      }
     });
 
-    if (!response1.ok || !response2.ok || !response3.ok || !response7.ok) {
-      console.error('Some CSV files failed to load:', {
-        r1: response1.statusText,
-        r2: response2.statusText,
-        r3: response3.statusText,
-        r7: response7.statusText
-      });
+    if (errors.length > 0) {
+      console.warn('Some CSV files failed to load:', errors);
     }
 
-    const [csv1, csv2, csv3, csv7] = await Promise.all([
-      response1.text(),
-      response2.text(),
-      response3.text(),
-      response7.text()
-    ]);
+    // Get text content from all responses
+    const csvContents = await Promise.all(
+      responses.map(response => response.text())
+    );
 
-    console.log('CSV content lengths:', {
-      csv1: csv1.length,
-      csv2: csv2.length,
-      csv3: csv3.length,
-      csv7: csv7.length
+    console.log(`Loaded ${csvContents.length} CSV files`);
+
+    // Parse all CSV files
+    const allLocations: MapLocation[] = [];
+    csvContents.forEach((csv, index) => {
+      const locations = parseCSVLocations(csv);
+      console.log(`${csvFiles[index]}: ${locations.length} locations`);
+      allLocations.push(...locations);
     });
 
-    const locations1 = parseCSVLocations(csv1);
-    const locations2 = parseCSVLocations(csv2);
-    const locations3 = parseCSVLocations(csv3);
-    const locations7 = parseCSVLocations(csv7);
-
-    console.log('Parsed locations:', {
-      loc1: locations1.length,
-      loc2: locations2.length,
-      loc3: locations3.length,
-      loc7: locations7.length
-    });
-
-    const all = [...locations1, ...locations2, ...locations3, ...locations7];
-    console.log('Total locations:', all.length);
-    return all;
+    console.log(`Total locations loaded: ${allLocations.length}`);
+    return allLocations;
   } catch (error) {
     console.error('Error loading map data:', error);
     return [];
