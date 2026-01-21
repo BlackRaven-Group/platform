@@ -129,8 +129,10 @@ export default function DossierAccess({ dossierId, codeName, onBack, onDeleted }
       }
     }
 
-    setCode('');
-    setLoading(false);
+    if (!showDeleteWarning) {
+      setCode('');
+      setLoading(false);
+    }
   };
 
   if (deleted) {
