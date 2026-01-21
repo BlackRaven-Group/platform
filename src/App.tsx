@@ -224,8 +224,6 @@ function App() {
     }
 
     // Delete all related data
-    const { supabase: supabaseClient } = await import('./lib/supabase');
-    const { supabase } = supabaseClient;
 
     // Delete intelligence notes linked to dossier
     await supabase.from('intelligence_notes').delete().eq('dossier_id', dossierId);
