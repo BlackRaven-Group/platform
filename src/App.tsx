@@ -383,9 +383,27 @@ function App() {
   };
 
 
-  // Splash screen avec GIF
+  // Écran d'accès pour débloquer l'audio
+  if (showAccess) {
+    return (
+      <AccessScreen
+        onAccess={() => {
+          setAudioUnlocked(true);
+          setShowAccess(false);
+          setShowSplash(true);
+        }}
+      />
+    );
+  }
+
+  // Splash screen avec GIF (audio débloqué)
   if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+    return (
+      <SplashScreen
+        onComplete={() => setShowSplash(false)}
+        audioUnlocked={audioUnlocked}
+      />
+    );
   }
 
   // Écran de chargement
