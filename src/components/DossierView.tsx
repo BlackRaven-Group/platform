@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, UserPlus, FileDown, Database, Edit2, Check, X } from 'lucide-react';
+import { ArrowLeft, UserPlus, FileDown, Database, Edit2, Check, X, Globe } from 'lucide-react';
 import { supabase, type Dossier, type Target } from '../lib/supabase';
 import TargetCard from './TargetCard';
 import TargetDetail from './TargetDetail';

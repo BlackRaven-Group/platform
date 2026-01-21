@@ -166,6 +166,7 @@ export default function DossierAccess({ dossierId, codeName, onBack, onDeleted }
               maxLength={6}
               placeholder="••••••"
               className="terminal-input w-full text-center text-2xl tracking-widest font-mono"
+              autoComplete="one-time-code"
               autoFocus
               disabled={loading || error === 'LOCKED'}
             />
