@@ -154,11 +154,18 @@ function App() {
       return;
     }
 
-    const { data, error } = await supabase
+    // For admin users, load all dossiers. For regular users, load only their own dossiers
+    let query = supabase
       .from('dossiers')
       .select('*')
-      .eq('user_id', user.id)
       .order('updated_at', { ascending: false });
+
+    // If user is not admin, filter by user_id or null (for OSINT-created dossiers)
+    if (userRole !== 'super_admin' && userRole !== 'admin') {
+      query = query.or(`user_id.eq.${user.id},user_id.is.null`);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setDossiers(data);
