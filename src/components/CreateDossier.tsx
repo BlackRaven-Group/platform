@@ -65,7 +65,7 @@ export default function CreateDossier({ onBack }: CreateDossierProps) {
 
   if (generatedCode) {
     return (
-      <div>
+      <div className="min-h-screen bg-black text-zinc-200 font-mono">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">
             {'>'} DOSSIER CRÉÉ
@@ -108,7 +108,7 @@ export default function CreateDossier({ onBack }: CreateDossierProps) {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-black text-zinc-200 font-mono">
       <div className="flex items-center space-x-4 mb-8">
         <button onClick={onBack} className="terminal-button">
           <ArrowLeft className="w-4 h-4" />
