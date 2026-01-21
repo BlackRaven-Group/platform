@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, CheckSquare, AlertTriangle, UserPlus, FileText, Loader } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, CheckSquare, AlertTriangle, UserPlus, FileText, Loader, Square, CheckSquare2, Users, X } from 'lucide-react';
 import { getSearchResults, confirmSearchResults, extractTargetsFromResults, type OSINTResult, type OSINTSearchResponse, type ExtractedTarget } from '../lib/osint';
 import { supabase } from '../lib/supabase';
 import { encryptPassword } from '../lib/crypto';
@@ -12,6 +12,13 @@ interface OSINTResultsProps {
   onDossierCreated?: (dossierId: string, accessCode: string) => void;
 }
 
+interface TargetGroup {
+  indices: number[];
+  isDuplicate: boolean;
+  confidence: number;
+  matchReason: string;
+}
+
 export default function OSINTResults({ searchId, dossierId, onBack, onDossierCreated }: OSINTResultsProps) {
   const [search, setSearch] = useState<OSINTSearchResponse | null>(null);
   const [results, setResults] = useState<OSINTResult[]>([]);
@@ -20,6 +27,8 @@ export default function OSINTResults({ searchId, dossierId, onBack, onDossierCre
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [consolidateDuplicates, setConsolidateDuplicates] = useState(true);
+  const [showDuplicateGroups, setShowDuplicateGroups] = useState(true);
 
   useEffect(() => {
     loadResults();
@@ -43,6 +52,149 @@ export default function OSINTResults({ searchId, dossierId, onBack, onDossierCre
     setLoading(false);
   };
 
+  // Detect duplicate targets
+  const duplicateGroups = useMemo(() => {
+    const groups: TargetGroup[] = [];
+    const processed = new Set<number>();
+
+    for (let i = 0; i < extractedTargets.length; i++) {
+      if (processed.has(i)) continue;
+
+      const group: TargetGroup = {
+        indices: [i],
+        isDuplicate: false,
+        confidence: 0,
+        matchReason: ''
+      };
+
+      const target1 = extractedTargets[i];
+
+      for (let j = i + 1; j < extractedTargets.length; j++) {
+        if (processed.has(j)) continue;
+
+        const target2 = extractedTargets[j];
+        const match = detectTargetMatch(target1, target2);
+
+        if (match.isMatch) {
+          group.indices.push(j);
+          group.isDuplicate = true;
+          group.confidence = Math.max(group.confidence, match.confidence);
+          if (!group.matchReason) {
+            group.matchReason = match.reason;
+          }
+          processed.add(j);
+        }
+      }
+
+      if (group.isDuplicate) {
+        groups.push(group);
+        processed.add(i);
+      }
+    }
+
+    return groups;
+  }, [extractedTargets]);
+
+  // Detect if two targets are the same person
+  function detectTargetMatch(target1: ExtractedTarget, target2: ExtractedTarget): { isMatch: boolean; confidence: number; reason: string } {
+    let confidence = 0;
+    const reasons: string[] = [];
+
+    // Email match (highest confidence)
+    if (target1.email && target2.email && target1.email.toLowerCase() === target2.email.toLowerCase()) {
+      confidence += 50;
+      reasons.push('email');
+    }
+
+    // Phone match (normalize phone numbers)
+    if (target1.phone && target2.phone) {
+      const phone1 = target1.phone.replace(/\D/g, '');
+      const phone2 = target2.phone.replace(/\D/g, '');
+      if (phone1 === phone2 && phone1.length >= 8) {
+        confidence += 40;
+        reasons.push('phone');
+      }
+    }
+
+    // Username match
+    if (target1.username && target2.username && target1.username.toLowerCase() === target2.username.toLowerCase()) {
+      confidence += 30;
+      reasons.push('username');
+    }
+
+    // Name match (fuzzy)
+    if (target1.name && target2.name) {
+      const name1 = target1.name.toLowerCase().trim();
+      const name2 = target2.name.toLowerCase().trim();
+      if (name1 === name2) {
+        confidence += 35;
+        reasons.push('name');
+      } else if (name1.split(' ').some(part => name2.includes(part)) || name2.split(' ').some(part => name1.includes(part))) {
+        confidence += 20;
+        reasons.push('name_partial');
+      }
+    }
+
+    // IP match
+    if (target1.ip && target2.ip && target1.ip === target2.ip) {
+      confidence += 25;
+      reasons.push('ip');
+    }
+
+    // Address match (partial)
+    if (target1.address && target2.address) {
+      const addr1 = target1.address.toLowerCase();
+      const addr2 = target2.address.toLowerCase();
+      if (addr1 === addr2) {
+        confidence += 30;
+        reasons.push('address');
+      } else if (addr1.split(',').some(part => addr2.includes(part.trim())) || addr2.split(',').some(part => addr1.includes(part.trim()))) {
+        confidence += 15;
+        reasons.push('address_partial');
+      }
+    }
+
+    return {
+      isMatch: confidence >= 30, // Minimum threshold
+      confidence: Math.min(100, confidence),
+      reason: reasons.join(', ')
+    };
+  }
+
+  // Consolidate duplicate targets into one
+  function consolidateTargetGroup(groupIndices: number[]): ExtractedTarget {
+    const targets = groupIndices.map(idx => extractedTargets[idx]);
+    const consolidated: ExtractedTarget = {
+      raw_data: {}
+    };
+
+    // Merge all data, keeping the most complete version
+    for (const target of targets) {
+      if (target.email && !consolidated.email) consolidated.email = target.email;
+      if (target.phone && !consolidated.phone) consolidated.phone = target.phone;
+      if (target.name && !consolidated.name) consolidated.name = target.name;
+      if (target.username && !consolidated.username) consolidated.username = target.username;
+      if (target.password && !consolidated.password) consolidated.password = target.password;
+      if (target.ip && !consolidated.ip) consolidated.ip = target.ip;
+      if (target.address && !consolidated.address) consolidated.address = target.address;
+
+      // Merge social media
+      if (target.social_media) {
+        if (!consolidated.social_media) consolidated.social_media = [];
+        for (const social of target.social_media) {
+          if (!consolidated.social_media.some(s => s.platform === social.platform && s.username === social.username)) {
+            consolidated.social_media.push(social);
+          }
+        }
+      }
+
+      // Merge raw_data
+      consolidated.raw_data = { ...consolidated.raw_data, ...target.raw_data };
+    }
+
+    return consolidated;
+  }
+
   const toggleTargetSelection = (index: number) => {
     setSelectedTargets(prev => {
       const newSet = new Set(prev);
@@ -54,6 +206,56 @@ export default function OSINTResults({ searchId, dossierId, onBack, onDossierCre
       return newSet;
     });
   };
+
+  const selectAll = () => {
+    setSelectedTargets(new Set(extractedTargets.map((_, idx) => idx)));
+  };
+
+  const deselectAll = () => {
+    setSelectedTargets(new Set());
+  };
+
+  const toggleGroupSelection = (group: TargetGroup) => {
+    setSelectedTargets(prev => {
+      const newSet = new Set(prev);
+      const allSelected = group.indices.every(idx => newSet.has(idx));
+      
+      if (allSelected) {
+        group.indices.forEach(idx => newSet.delete(idx));
+      } else {
+        group.indices.forEach(idx => newSet.add(idx));
+      }
+      
+      return newSet;
+    });
+  };
+
+  // Calculate consolidated targets count for display
+  const consolidatedTargetsCount = useMemo(() => {
+    if (!consolidateDuplicates || duplicateGroups.length === 0) {
+      return selectedTargets.size;
+    }
+
+    const processedIndices = new Set<number>();
+    let count = 0;
+
+    for (const group of duplicateGroups) {
+      const selectedInGroup = group.indices.filter(idx => selectedTargets.has(idx));
+      if (selectedInGroup.length > 0) {
+        count++;
+        selectedInGroup.forEach(idx => processedIndices.add(idx));
+      }
+    }
+
+    // Add non-duplicate selected targets
+    Array.from(selectedTargets).forEach(idx => {
+      if (!processedIndices.has(idx)) {
+        count++;
+      }
+    });
+
+    return count;
+  }, [selectedTargets, consolidateDuplicates, duplicateGroups]);
 
   const handleConfirmAndCreate = async () => {
     if (selectedTargets.size === 0) {
@@ -107,9 +309,33 @@ export default function OSINTResults({ searchId, dossierId, onBack, onDossierCre
           .eq('id', searchId);
       }
 
-      const selectedTargetsList = Array.from(selectedTargets).map(idx => extractedTargets[idx]);
+      // Get selected targets, consolidating duplicates if enabled
+      let targetsToCreate: ExtractedTarget[] = [];
+      
+      if (consolidateDuplicates && duplicateGroups.length > 0) {
+        const processedIndices = new Set<number>();
 
-      for (const target of selectedTargetsList) {
+        for (const group of duplicateGroups) {
+          const selectedInGroup = group.indices.filter(idx => selectedTargets.has(idx));
+          if (selectedInGroup.length > 0) {
+            // If consolidating, create one target from the group
+            const consolidated = consolidateTargetGroup(selectedInGroup);
+            targetsToCreate.push(consolidated);
+            selectedInGroup.forEach(idx => processedIndices.add(idx));
+          }
+        }
+
+        // Add non-duplicate selected targets
+        Array.from(selectedTargets).forEach(idx => {
+          if (!processedIndices.has(idx)) {
+            targetsToCreate.push(extractedTargets[idx]);
+          }
+        });
+      } else {
+        targetsToCreate = Array.from(selectedTargets).map(idx => extractedTargets[idx]);
+      }
+
+      for (const target of targetsToCreate) {
         const nameParts = target.name?.split(' ') || ['ND'];
         const firstName = nameParts[0] || 'ND';
         const lastName = nameParts.slice(1).join(' ') || 'ND';
@@ -275,16 +501,104 @@ export default function OSINTResults({ searchId, dossierId, onBack, onDossierCre
 
       {extractedTargets.length > 0 && search.status === 'completed' && (
         <div className="border-2 border-zinc-800 p-6 mb-6 bg-zinc-900/20">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div className="data-label">EXTRACTED TARGETS ({extractedTargets.length}):</div>
-            <button
-              onClick={() => setShowConfirmation(!showConfirmation)}
-              className="terminal-button-primary flex items-center space-x-2"
-            >
-              <UserPlus className="w-5 h-5" />
-              <span>CREATE TARGETS ({selectedTargets.size})</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={selectAll}
+                className="terminal-button flex items-center space-x-2 text-xs"
+                title="Sélectionner tout"
+              >
+                <CheckSquare2 className="w-4 h-4" />
+                <span>TOUT</span>
+              </button>
+              <button
+                onClick={deselectAll}
+                className="terminal-button flex items-center space-x-2 text-xs"
+                title="Tout désélectionner"
+              >
+                <Square className="w-4 h-4" />
+                <span>RIEN</span>
+              </button>
+              {duplicateGroups.length > 0 && (
+                <button
+                  onClick={() => setShowDuplicateGroups(!showDuplicateGroups)}
+                  className="terminal-button flex items-center space-x-2 text-xs"
+                  title="Afficher/masquer les groupes de doublons"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>DOUBLONS ({duplicateGroups.length})</span>
+                </button>
+              )}
+              <button
+                onClick={() => setShowConfirmation(!showConfirmation)}
+                className="terminal-button-primary flex items-center space-x-2"
+              >
+                <UserPlus className="w-5 h-5" />
+                <span>CREATE TARGETS ({consolidatedTargetsCount})</span>
+              </button>
+            </div>
           </div>
+
+          {duplicateGroups.length > 0 && (
+            <div className="mb-4 p-3 bg-amber-950/20 border border-amber-800 rounded">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2 text-amber-400 text-sm">
+                  <Users className="w-4 h-4" />
+                  <span>{duplicateGroups.length} groupe(s) de doublons détecté(s)</span>
+                </div>
+                <label className="flex items-center space-x-2 text-xs text-zinc-400 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={consolidateDuplicates}
+                    onChange={(e) => setConsolidateDuplicates(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span>Consolider les doublons</span>
+                </label>
+              </div>
+              {showDuplicateGroups && (
+                <div className="space-y-2 mt-3">
+                  {duplicateGroups.map((group, groupIdx) => {
+                    const allSelected = group.indices.every(idx => selectedTargets.has(idx));
+                    const someSelected = group.indices.some(idx => selectedTargets.has(idx));
+                    return (
+                      <div
+                        key={groupIdx}
+                        className={`p-2 border rounded ${
+                          allSelected ? 'border-green-600 bg-green-950/20' : 
+                          someSelected ? 'border-yellow-600 bg-yellow-950/20' : 
+                          'border-amber-800 bg-amber-950/10'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => toggleGroupSelection(group)}
+                              className={`w-4 h-4 border-2 flex items-center justify-center ${
+                                allSelected ? 'border-green-500 bg-green-500' : 
+                                someSelected ? 'border-yellow-500 bg-yellow-500' : 
+                                'border-amber-700'
+                              }`}
+                            >
+                              {allSelected && <CheckSquare className="w-3 h-3 text-black" />}
+                              {someSelected && !allSelected && <div className="w-2 h-2 bg-black rounded" />}
+                            </button>
+                            <span className="text-xs text-amber-400">
+                              Groupe {groupIdx + 1}: {group.indices.length} target(s) - {group.matchReason} ({group.confidence}%)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-xs text-zinc-500 ml-6">
+                          Indices: {group.indices.join(', ')}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {showConfirmation && (
             <div className="border-2 border-yellow-900 p-4 mb-4 bg-yellow-950/20">
@@ -293,7 +607,12 @@ export default function OSINTResults({ searchId, dossierId, onBack, onDossierCre
                 <span className="font-bold">CONFIRMATION REQUIRED</span>
               </div>
               <p className="text-yellow-400 text-sm mb-4">
-                You are about to create {selectedTargets.size} target(s) {dossierId ? 'in the current dossier' : 'in a new dossier'}.
+                You are about to create {consolidatedTargetsCount} target(s) {dossierId ? 'in the current dossier' : 'in a new dossier'}.
+                {consolidateDuplicates && duplicateGroups.length > 0 && selectedTargets.size > consolidatedTargetsCount && (
+                  <span className="block mt-1 text-amber-500">
+                    {selectedTargets.size - consolidatedTargetsCount} duplicate(s) will be consolidated.
+                  </span>
+                )}
                 This will extract and store all available information including emails, phones, addresses, and credentials.
               </p>
               <div className="flex space-x-3">
