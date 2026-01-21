@@ -24,11 +24,36 @@ export default function SplashScreen({
     audioRef.current.volume = 0.8; // Volume à 80%
     audioRef.current.preload = 'auto';
     
+    // Stratégie pour forcer l'autoplay : créer une interaction programmatique
+    // en simulant un clic sur un bouton invisible au chargement
+    const enableAutoplay = () => {
+      // Créer un bouton invisible qui se déclenche automatiquement
+      const button = document.createElement('button');
+      button.style.position = 'fixed';
+      button.style.opacity = '0';
+      button.style.pointerEvents = 'none';
+      button.style.width = '1px';
+      button.style.height = '1px';
+      document.body.appendChild(button);
+      
+      // Simuler un clic pour débloquer l'autoplay
+      button.click();
+      
+      // Nettoyer après un court délai
+      setTimeout(() => {
+        document.body.removeChild(button);
+      }, 100);
+    };
+    
+    // Activer l'autoplay dès le chargement
+    enableAutoplay();
+    
     // Les navigateurs modernes bloquent l'autoplay audio sans interaction utilisateur
     // On va essayer de jouer le son, et si ça échoue, on le jouera au premier clic/interaction
     const playAudio = async () => {
       if (audioRef.current && !hasPlayedRef.current) {
         try {
+          // Essayer de jouer immédiatement
           await audioRef.current.play();
           hasPlayedRef.current = true;
           console.log('Audio played successfully');
@@ -43,10 +68,13 @@ export default function SplashScreen({
             document.removeEventListener('click', playOnInteraction);
             document.removeEventListener('touchstart', playOnInteraction);
             document.removeEventListener('keydown', playOnInteraction);
+            document.removeEventListener('mousemove', playOnInteraction);
           };
+          // Écouter plusieurs types d'interactions pour maximiser les chances
           document.addEventListener('click', playOnInteraction, { once: true });
           document.addEventListener('touchstart', playOnInteraction, { once: true });
           document.addEventListener('keydown', playOnInteraction, { once: true });
+          document.addEventListener('mousemove', playOnInteraction, { once: true });
         }
       }
     };

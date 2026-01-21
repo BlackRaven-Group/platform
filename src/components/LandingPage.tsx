@@ -57,7 +57,7 @@ export default function LandingPage({ onAccessServices, onAdminAccess }: Landing
                 <span className="text-white text-sm font-bold tracking-widest">[CLASSIFIED OPERATIONS]</span>
               </div>
               <img
-                src="/hero-logo.jpg"
+                src="/hero-logo.png"
                 alt="BlackRaven"
                 className="w-40 h-40 md:w-48 md:h-48 mx-auto mb-8 opacity-90 hover:opacity-100 transition-opacity duration-300 object-contain"
               />
