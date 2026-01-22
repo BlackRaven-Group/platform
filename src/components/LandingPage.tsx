@@ -302,6 +302,7 @@ export default function LandingPage({ onAccessServices, onAdminAccess, onGoToLeg
           </div>
         </footer>
       </div>
+    </div>
     </>
   );
 }
