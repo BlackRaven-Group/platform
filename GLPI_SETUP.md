@@ -1,0 +1,99 @@
+# Configuration GLPI - BlackRaven
+
+## ✅ Configuration effectuée
+
+### 1. Base de données
+- ✅ Migration appliquée : Configuration GLPI mise à jour dans `glpi_config`
+- ✅ URL API : `https://desk.blackraven.fr/api.php/v2.1`
+- ✅ Token : `XMgrDtecbyK2EJ7B2QAH` (utilisé pour app_token et user_token)
+
+### 2. Edge Function créée
+- ✅ `supabase/functions/create-glpi-ticket/index.ts`
+- ✅ Gère l'authentification GLPI
+- ✅ Crée des tickets dans GLPI
+- ✅ Synchronise avec la base de données
+
+### 3. Intégration frontend
+- ✅ `GLPITicketing.tsx` modifié pour appeler l'Edge Function
+- ✅ Les tickets sont créés dans GLPI automatiquement
+
+## 📋 À faire (si nécessaire)
+
+### 1. Déployer l'Edge Function
+```bash
+# Se connecter à Supabase
+supabase login
+
+# Lier le projet
+supabase link --project-ref votre-project-ref
+
+# Déployer la fonction
+supabase functions deploy create-glpi-ticket
+```
+
+### 2. Vérifier l'authentification GLPI
+
+**Important** : GLPI REST API v2.1 nécessite généralement **deux tokens** :
+- `app_token` : Token de l'application
+- `user_token` : Token de l'utilisateur
+
+Si vous avez fourni un seul token (`XMgrDtecbyK2EJ7B2QAH`), il faut vérifier :
+
+1. **Option A** : Si c'est un token unique qui fonctionne pour les deux :
+   - ✅ Configuration actuelle correcte (même token pour app_token et user_token)
+
+2. **Option B** : Si GLPI nécessite deux tokens différents :
+   - Il faudra obtenir le `user_token` séparément
+   - Mettre à jour la config dans la base de données
+
+### 3. Tester la connexion
+
+Pour tester si la configuration fonctionne :
+
+1. **Via l'interface admin** (à créer) :
+   - Ajouter une section dans `AdminPanel.tsx` pour gérer la config GLPI
+   - Tester la connexion
+
+2. **Via un ticket** :
+   - Créer un ticket depuis l'interface client
+   - Vérifier les logs de l'Edge Function
+   - Vérifier si le ticket apparaît dans GLPI
+
+### 4. Documentation GLPI API
+
+Consultez la documentation de votre instance GLPI :
+- URL : `https://desk.blackraven.fr/api.php/v2.1/doc`
+- Vérifier les endpoints disponibles
+- Vérifier le format d'authentification exact
+
+## 🔍 Vérifications nécessaires
+
+1. **Token unique ou double ?**
+   - Si erreur d'authentification, vérifier si GLPI nécessite deux tokens différents
+   - Le token fourni peut être soit `app_token` soit `user_token`
+
+2. **Format d'authentification**
+   - GLPI v2.1 utilise généralement :
+     - Header `App-Token` pour app_token
+     - Header `Authorization: user_token <token>` pour user_token
+   - Vérifier dans votre documentation GLPI
+
+3. **Structure des tickets**
+   - Vérifier les champs requis pour créer un ticket
+   - Peut nécessiter des catégories, utilisateurs, etc.
+
+## 📝 Prochaines étapes
+
+1. **Déployer l'Edge Function** (nécessite `supabase login`)
+2. **Tester la création d'un ticket** depuis l'interface
+3. **Vérifier les logs** si erreur
+4. **Ajuster la config** si nécessaire (tokens, champs, etc.)
+
+## 🛠️ Si erreur d'authentification
+
+Si vous obtenez une erreur 401 ou 403 lors de la création de tickets :
+
+1. Vérifier que le token est correct
+2. Vérifier si GLPI nécessite deux tokens différents
+3. Vérifier les permissions du token dans GLPI
+4. Consulter la documentation : `https://desk.blackraven.fr/api.php/v2.1/doc`
