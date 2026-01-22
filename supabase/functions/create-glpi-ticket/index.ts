@@ -75,9 +75,8 @@ Deno.serve(async (req: Request) => {
 
     const { api_url, app_token, user_token } = glpiConfig;
 
-    // GLPI API v2.1 - Init session
-    // Note: GLPI peut utiliser différents formats selon la version
-    // Essayer d'abord avec le format standard, puis avec query params si nécessaire
+    // GLPI API - Init session
+    // Utiliser l'API v1 qui fonctionne avec les tokens hexadécimaux
     const initSessionUrl = `${api_url}/initSession`;
     
     // Essayer avec headers d'abord
