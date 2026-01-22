@@ -1,4 +1,6 @@
-import { Shield, Eye, Network, Lock, ChevronRight, Users, FileSearch, Database, Skull, Briefcase, Server, Code, Megaphone, Headphones } from 'lucide-react';
+import { useState } from 'react';
+import { Shield, Eye, Network, Lock, ChevronRight, Users, FileSearch, Database, Skull, Briefcase, Server, Code, Megaphone, Headphones, GitBranch } from 'lucide-react';
+import SystemFlowchart from './SystemFlowchart';
 
 interface LandingPageProps {
   onAccessServices: () => void;
@@ -7,6 +9,7 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onAccessServices, onAdminAccess, onGoToLegal }: LandingPageProps) {
+  const [showFlowchart, setShowFlowchart] = useState(false);
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-mono relative overflow-hidden">
       <div className="scanline"></div>
@@ -33,6 +36,14 @@ export default function LandingPage({ onAccessServices, onAdminAccess, onGoToLeg
                 </div>
               </div>
               <div className="flex gap-3">
+                <button
+                  onClick={() => setShowFlowchart(true)}
+                  className="terminal-button-small text-xs px-3 py-2 border border-zinc-800 hover:border-cyan-600 text-zinc-400 hover:text-cyan-500 transition-all flex items-center gap-2"
+                  title="Voir l'architecture système"
+                >
+                  <GitBranch className="w-4 h-4" />
+                  <span className="hidden sm:inline">ARCHITECTURE</span>
+                </button>
                 <button
                   onClick={onAdminAccess}
                   className="terminal-button-small text-xs px-3 py-2 border border-zinc-800 hover:border-amber-600 text-zinc-400 hover:text-amber-500 transition-all"
@@ -291,6 +302,6 @@ export default function LandingPage({ onAccessServices, onAdminAccess, onGoToLeg
           </div>
         </footer>
       </div>
-    </div>
+    </>
   );
 }
