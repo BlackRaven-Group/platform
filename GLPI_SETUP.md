@@ -17,19 +17,23 @@
 - ✅ `GLPITicketing.tsx` modifié pour appeler l'Edge Function
 - ✅ Les tickets sont créés dans GLPI automatiquement
 
-## 📋 À faire (si nécessaire)
+## 📋 À faire (URGENT)
 
-### 1. Déployer l'Edge Function
+### 1. Déployer l'Edge Function ⚠️
+**L'Edge Function `create-glpi-ticket` n'est pas encore déployée !**
+
 ```bash
 # Se connecter à Supabase
 supabase login
 
-# Lier le projet
-supabase link --project-ref votre-project-ref
+# Lier le projet (si pas déjà fait)
+supabase link --project-ref rsndbepkhfrxlokkmjbi
 
 # Déployer la fonction
 supabase functions deploy create-glpi-ticket
 ```
+
+**Sans cette étape, les tickets ne seront pas créés dans GLPI !**
 
 ### 2. Vérifier l'authentification GLPI
 
@@ -46,18 +50,28 @@ Si vous avez fourni un seul token (`XMgrDtecbyK2EJ7B2QAH`), il faut vérifier :
    - Il faudra obtenir le `user_token` séparément
    - Mettre à jour la config dans la base de données
 
-### 3. Tester la connexion
+### 3. Fonctionnalités ajoutées
+
+✅ **Création automatique d'utilisateurs GLPI** :
+- L'Edge Function recherche d'abord si l'utilisateur existe dans GLPI (par email)
+- Si non trouvé, crée automatiquement un nouvel utilisateur/contact
+- Associe ensuite le ticket à cet utilisateur
+
+✅ **Gestion des erreurs** :
+- Si la création GLPI échoue, le ticket est quand même sauvegardé localement
+- Logs détaillés pour le débogage
+
+### 4. Tester la connexion
 
 Pour tester si la configuration fonctionne :
 
-1. **Via l'interface admin** (à créer) :
-   - Ajouter une section dans `AdminPanel.tsx` pour gérer la config GLPI
-   - Tester la connexion
+1. **Déployer l'Edge Function** (voir étape 1 ci-dessus)
 
-2. **Via un ticket** :
+2. **Créer un ticket** :
    - Créer un ticket depuis l'interface client
-   - Vérifier les logs de l'Edge Function
-   - Vérifier si le ticket apparaît dans GLPI
+   - Vérifier les logs de l'Edge Function dans Supabase Dashboard
+   - Vérifier si le ticket apparaît dans GLPI à `https://desk.blackraven.fr`
+   - Vérifier si l'utilisateur a été créé dans GLPI
 
 ### 4. Documentation GLPI API
 
