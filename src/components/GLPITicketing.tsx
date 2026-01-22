@@ -85,6 +85,9 @@ ${description}
           description: fullDescription,
           priority: priority,
           status: 'pending',
+          client_name: contactName,
+          client_email: contactEmail,
+          client_phone: contactPhone || null,
         })
         .select()
         .single();
