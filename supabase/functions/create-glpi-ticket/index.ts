@@ -75,30 +75,16 @@ Deno.serve(async (req: Request) => {
 
     const { api_url, app_token, user_token } = glpiConfig;
 
-    // GLPI API - Init session
-    // Utiliser l'API v1 qui fonctionne avec les tokens hexadécimaux
-    const initSessionUrl = `${api_url}/initSession`;
+    // GLPI API v1 - Init session
+    // L'API v1 utilise les query parameters pour l'authentification
+    const initSessionUrl = `${api_url}/initSession?user_token=${encodeURIComponent(user_token)}&app_token=${encodeURIComponent(app_token)}`;
     
-    // Essayer avec headers d'abord
     let initResponse = await fetch(initSessionUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `user_token ${user_token}`,
-        'App-Token': app_token,
         'Content-Type': 'application/json',
       },
     });
-
-    // Si échec avec headers, essayer avec query parameters
-    if (!initResponse.ok) {
-      const initSessionUrlWithParams = `${api_url}/initSession?user_token=${encodeURIComponent(user_token)}&app_token=${encodeURIComponent(app_token)}`;
-      initResponse = await fetch(initSessionUrlWithParams, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    }
 
     if (!initResponse.ok) {
       const errorText = await initResponse.text();
