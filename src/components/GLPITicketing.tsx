@@ -94,6 +94,41 @@ ${description}
       }
 
       setTicketId(ticket.id);
+      
+      // Try to create ticket in GLPI via Edge Function
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-glpi-ticket`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              ticket_id: ticket.id,
+              title: title,
+              description: fullDescription,
+              priority: priority,
+              contact_name: contactName,
+              contact_email: contactEmail,
+              contact_phone: contactPhone || null,
+            }),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log('✅ GLPI ticket created:', result.glpi_ticket_id);
+          } else {
+            const error = await response.json();
+            console.warn('⚠️ GLPI ticket creation failed (ticket saved locally):', error);
+          }
+        }
+      } catch (glpiError) {
+        console.warn('⚠️ GLPI integration error (ticket saved locally):', glpiError);
+        // Continue anyway - ticket is saved in database
+      }
+
       setSuccess(true);
 
       // Envoyer email de confirmation
