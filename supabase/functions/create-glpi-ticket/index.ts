@@ -105,6 +105,75 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Helper function to find or create user in GLPI
+    const findOrCreateGLPIUser = async (email: string, name: string, phone?: string): Promise<number | null> => {
+      try {
+        // Search for existing user by email
+        const searchUrl = `${api_url}/User?criteria[0][field]=5&criteria[0][searchtype]=contains&criteria[0][value]=${encodeURIComponent(email)}`;
+        const searchResponse = await fetch(searchUrl, {
+          method: 'GET',
+          headers: {
+            'Session-Token': sessionToken,
+            'App-Token': app_token,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json();
+          if (searchData && searchData.length > 0 && searchData[0].id) {
+            console.log(`✅ Found existing GLPI user: ${searchData[0].id}`);
+            return parseInt(searchData[0].id);
+          }
+        }
+
+        // User not found, create new user
+        console.log(`📝 Creating new GLPI user for: ${email}`);
+        const createUserUrl = `${api_url}/User`;
+        const userData = {
+          input: {
+            name: name || email.split('@')[0],
+            realname: name || email.split('@')[0],
+            firstname: name.split(' ')[0] || '',
+            _useremails: [{ email: email }],
+            phone: phone || '',
+            is_active: 1,
+            profiles_id: 4, // Self-service profile (adjust if needed)
+          }
+        };
+
+        const createUserResponse = await fetch(createUserUrl, {
+          method: 'POST',
+          headers: {
+            'Session-Token': sessionToken,
+            'App-Token': app_token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userData),
+        });
+
+        if (createUserResponse.ok) {
+          const newUserData = await createUserResponse.json();
+          if (newUserData && newUserData.id) {
+            console.log(`✅ Created new GLPI user: ${newUserData.id}`);
+            return parseInt(newUserData.id);
+          }
+        } else {
+          const errorText = await createUserResponse.text();
+          console.warn(`⚠️ Failed to create GLPI user: ${errorText}`);
+        }
+      } catch (error) {
+        console.error('Error finding/creating GLPI user:', error);
+      }
+      return null;
+    };
+
+    // Find or create user in GLPI
+    let glpiUserId: number | null = null;
+    if (contact_email) {
+      glpiUserId = await findOrCreateGLPIUser(contact_email, contact_name || contact_email, contact_phone || undefined);
+    }
+
     // Create ticket in GLPI
     // GLPI v2.1 uses Ticket endpoint
     const createTicketUrl = `${api_url}/Ticket`;
@@ -122,18 +191,20 @@ ${description}`;
     // GLPI: 1=Very low, 2=Low, 3=Medium, 4=High, 5=Very high, 6=Major
     const glpiPriority = priority <= 1 ? 1 : priority >= 5 ? 5 : priority;
 
-    const ticketData = {
+    const ticketData: any = {
       input: {
         name: title,
         content: ticketContent,
         priority: glpiPriority,
         urgency: 3, // Medium urgency
         impact: 3,  // Medium impact
-        // You may need to adjust these based on your GLPI configuration
-        // _users_id_requester: user_id, // If you have user mapping
-        // itilcategories_id: category_id, // If you have categories
       }
     };
+
+    // Add requester user ID if we found/created one
+    if (glpiUserId) {
+      ticketData.input._users_id_requester = glpiUserId;
+    }
 
     const createResponse = await fetch(createTicketUrl, {
       method: 'POST',
