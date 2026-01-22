@@ -76,8 +76,12 @@ Deno.serve(async (req: Request) => {
     const { api_url, app_token, user_token } = glpiConfig;
 
     // GLPI API v2.1 - Init session
+    // Note: GLPI peut utiliser différents formats selon la version
+    // Essayer d'abord avec le format standard, puis avec query params si nécessaire
     const initSessionUrl = `${api_url}/initSession`;
-    const initResponse = await fetch(initSessionUrl, {
+    
+    // Essayer avec headers d'abord
+    let initResponse = await fetch(initSessionUrl, {
       method: 'GET',
       headers: {
         'Authorization': `user_token ${user_token}`,
@@ -85,6 +89,17 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
     });
+
+    // Si échec avec headers, essayer avec query parameters
+    if (!initResponse.ok) {
+      const initSessionUrlWithParams = `${api_url}/initSession?user_token=${encodeURIComponent(user_token)}&app_token=${encodeURIComponent(app_token)}`;
+      initResponse = await fetch(initSessionUrlWithParams, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
 
     if (!initResponse.ok) {
       const errorText = await initResponse.text();
